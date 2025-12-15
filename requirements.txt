@@ -1,0 +1,12 @@
+numpy
+pandas
+pyyaml
+tqdm
+scikit-learn
+torch
+transformers>=4.41.0
+accelerate
+bitsandbytes
+sentencepiece
+protobuf
+statsmodels

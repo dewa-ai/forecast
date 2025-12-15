@@ -1,0 +1,31 @@
+data:
+  csv_path: "data/usd_idr.csv"
+  date_col: "date"
+  value_col: "value"
+  freq: "D"
+
+task:
+  window_size: 30
+  horizon: 5
+  step: 1
+  start_ratio: 0.7
+
+models:
+  # - name: "llama3"
+  #   hf_id: "meta-llama/Meta-Llama-3-8B-Instruct"
+  - name: "qwen2_5"
+    hf_id: "Qwen/Qwen2.5-7B-Instruct"
+  - name: "mistral"
+    hf_id: "mistralai/Mistral-7B-Instruct-v0.3"
+
+inference:
+  use_4bit: true
+  max_new_tokens: 256
+  temperature: 0.0
+  top_p: 1.0
+  repetition_penalty: 1.05
+  seed: 42
+
+output:
+  out_dir: "outputs"
+  cache_dir: "outputs/cache"
