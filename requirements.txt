@@ -1,12 +1,27 @@
-numpy
-pandas
-pyyaml
-tqdm
+# numpy
+# pandas
+# pyyaml
+# tqdm
 scikit-learn
-torch
-transformers>=4.41.0
-accelerate
+# torch
+# transformers>=4.41.0
+# accelerate
 bitsandbytes
-sentencepiece
+# sentencepiece
 protobuf
 statsmodels
+
+
+playwright==1.49.0
+pandas==2.2.3
+numpy==2.1.3
+pyyaml==6.0.2
+scipy==1.14.1
+tqdm==4.67.1
+python-dateutil==2.9.0.post0
+transformers==4.46.3
+torch>=2.2.0
+accelerate>=0.33.0
+sentencepiece>=0.2.0
+requests==2.31.0
+

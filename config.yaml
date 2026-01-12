@@ -1,31 +1,131 @@
-data:
-  csv_path: "data/usd_idr.csv"
-  date_col: "date"
-  value_col: "value"
-  freq: "D"
+# data:
+#   csv_path: "data/usd_idr.csv"
+#   date_col: "date"
+#   value_col: "value"
+#   freq: "D"
 
-task:
-  window_size: 30
-  horizon: 5
-  step: 5
-  start_ratio: 0.7
+# task:
+#   window_size: 30
+#   horizon: 5
+#   step: 5
+#   start_ratio: 0.7
 
-models:
-  # - name: "llama3"
-  #   hf_id: "meta-llama/Meta-Llama-3-8B-Instruct"
-  - name: "qwen2_5"
-    hf_id: "Qwen/Qwen2.5-7B-Instruct"
-  - name: "mistral"
-    hf_id: "mistralai/Mistral-7B-Instruct-v0.3"
+# models:
+#   # - name: "llama3"
+#   #   hf_id: "meta-llama/Meta-Llama-3-8B-Instruct"
+#   - name: "qwen2_5"
+#     hf_id: "Qwen/Qwen2.5-7B-Instruct"
+#   - name: "mistral"
+#     hf_id: "mistralai/Mistral-7B-Instruct-v0.3"
 
-inference:
-  use_4bit: false
-  max_new_tokens: 256
+# inference:
+#   use_4bit: false
+#   max_new_tokens: 256
+#   temperature: 0.0
+#   top_p: 1.0
+#   repetition_penalty: 1.05
+#   seed: 42
+
+# output:
+#   out_dir: "outputs"
+#   cache_dir: "outputs/cache"
+
+
+#----------------------------------------------------------------------
+# config.yaml - revised
+#----------------------------------------------------------------------
+
+# experiment:
+#   currencies: [USD, IDR, TWD, AUD, EUR, SGD]
+#   horizons: [1, 5, 10]
+#   context_window: 60          # number of past points in prompt
+#   eval_size: 120              # last N samples for evaluation (per currency)
+#   price_column: price         # from normalized fx csv
+
+# experiment:
+#   pairs: [USDIDR, USDTWD, USDAUD, USDEUR, USDSGD]
+#   horizons: [1, 5, 10]
+#   context_window: 60
+#   eval_size: 120
+
+
+# pairs:
+#   # We forecast the "USD/XXX" rate where possible.
+#   # For EUR: Investing commonly uses EUR/USD, so set invert=true if you want USD/EUR.
+#   USDIDR:
+#     fx_url: "https://www.investing.com/currencies/usd-idr-historical-data"
+#     news_url: "https://www.investing.com/currencies/usd-idr-news"
+#     invert: false
+#   USDTWD:
+#     fx_url: "https://www.investing.com/currencies/usd-twd-historical-data"
+#     news_url: "https://www.investing.com/currencies/usd-twd-news"
+#     invert: false
+#   USDAUD:
+#     fx_url: "https://www.investing.com/currencies/usd-aud-historical-data"
+#     news_url: "https://www.investing.com/currencies/usd-aud-news"
+#     invert: false
+#   USDEUR:
+#     fx_url: "https://www.investing.com/currencies/eur-usd-historical-data"
+#     news_url: "https://www.investing.com/currencies/eur-usd-news"
+#     invert: true       # if fx_url is EUR/USD but you want USD/EUR
+#   USDSGD:
+#     fx_url: "https://www.investing.com/currencies/usd-sgd-historical-data"
+#     news_url: "https://www.investing.com/currencies/usd-sgd-news"
+#     invert: false
+
+# news:
+#   lookback_days: 7
+#   max_items_per_day: 20
+#   top_k: 8
+
+# ablation:
+#   news: [false, true]
+#   few_shot: [false, true]
+
+# llm:
+#   backend: "hf"                # "hf" only in this code
+#   model_name: "Qwen/Qwen2.5-7B-Instruct"
+#   temperature: 0.0
+#   max_new_tokens: 64
+
+# scraping:
+#   headless: true
+#   throttle_seconds: 2.0
+#   user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
+#   locale: "en-US"
+#   timeout_ms: 60000
+
+# selectors:
+#   # FX historical table
+#   fx_table_rows: "table tbody tr"
+#   # News list items (cards)
+#   news_card: "article, div[data-test='article-item'], div.news-analysis-v2__news-item, div.largeTitle"
+#   news_headline_link: "a"
+#   news_time: "time, span.date, span[class*='date'], span[class*='time']"
+#   news_snippet: "p, div[class*='snippet'], div[class*='description']"
+
+
+#----------------------------------------------------------------------
+# config.yaml - final
+#----------------------------------------------------------------------
+
+experiment:
+  pairs: [USDIDR, USDTWD, USDAUD, USDEUR, USDSGD]
+  horizons: [1, 5, 10]
+  context_window: 60
+  eval_size: 120
+
+news:
+  lookback_days: 7
+  top_k: 8
+
+ablation:
+  news: [false, true]
+  few_shot: [false, true]
+
+llm:
+  model_name: "Qwen/Qwen2.5-7B-Instruct"
   temperature: 0.0
-  top_p: 1.0
-  repetition_penalty: 1.05
-  seed: 42
+  max_new_tokens: 64
 
-output:
-  out_dir: "outputs"
-  cache_dir: "outputs/cache"
+output_dir: outputs

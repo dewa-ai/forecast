@@ -1,0 +1,11 @@
+{
+  "pair": "USDTWD",
+  "url": "https://www.investing.com/currencies/usd-twd-historical-data",
+  "curr_id": 1123484,
+  "range": {
+    "start": "2015-01-01",
+    "end": "2025-12-22"
+  },
+  "fetched_at": "2025-12-22T14:40:32.418375",
+  "rows": []
+}
