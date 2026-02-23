@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 """
-python3 scripts/check_fx_data.py --data-dir data/fx_raw --fill --out-dir data/fx_filled
+# Check data quality for all pairs
+python scripts/check_fx_data.py --data-dir data/fx_raw
+  
+# Forward-fill ALL days (including weekends) - DEFAULT for FX rates
+python scripts/check_fx_data.py --data-dir data/fx_raw --fill --out-dir data/fx_filled
+  
+# Forward-fill trading days only (if needed)
+python scripts/check_fx_data.py --data-dir data/fx_raw --fill --trading-days-only
 """
 
 from __future__ import annotations
@@ -162,6 +169,8 @@ def main():
                     # Default: Fill ALL calendar days (including weekends)
                     filled_df = forward_fill_dates(df)
                     print(f"[INFO] Forward-filled ALL calendar days (including weekends)")
+                
+                # Save filled data
                 out_dir = Path(args.out_dir)
                 out_dir.mkdir(parents=True, exist_ok=True)
                 out_path = out_dir / f"{pair_name}.csv"
