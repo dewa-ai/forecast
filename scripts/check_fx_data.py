@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """
-# Check data quality for all pairs
-python scripts/check_fx_data.py --data-dir data/fx_raw
+Check FX data quality and forward-fill missing days.
+
+Examples:
+  # Check data quality for all pairs
+  python scripts/check_fx_data.py --data-dir data/fx_raw
   
-# Forward-fill ALL days (including weekends) - DEFAULT for FX rates
-python scripts/check_fx_data.py --data-dir data/fx_raw --fill --out-dir data/fx_filled
+  # Forward-fill ALL days (including weekends) - DEFAULT for FX rates
+  python scripts/check_fx_data.py --data-dir data/fx_raw --fill --out-dir data/fx_filled
   
-# Forward-fill trading days only (if needed)
-python scripts/check_fx_data.py --data-dir data/fx_raw --fill --trading-days-only
+  # Forward-fill trading days only (if needed)
+  python scripts/check_fx_data.py --data-dir data/fx_raw --fill --trading-days-only
 """
 
 from __future__ import annotations
@@ -71,8 +74,8 @@ def forward_fill_dates(df: pd.DataFrame) -> pd.DataFrame:
     # Merge with original data
     filled_df = complete_df.merge(df, on='date', how='left')
     
-    # Forward fill missing values
-    filled_df = filled_df.fillna(method='ffill')
+    # Forward fill missing values (using new pandas syntax)
+    filled_df = filled_df.ffill()
     
     # Convert date back to string format
     filled_df['date'] = filled_df['date'].dt.strftime('%Y-%m-%d')
@@ -161,7 +164,7 @@ def main():
                     
                     complete_df = pd.DataFrame({'date': trading_days})
                     filled_df = complete_df.merge(df, on='date', how='left')
-                    filled_df = filled_df.fillna(method='ffill')
+                    filled_df = filled_df.ffill()
                     filled_df['date'] = filled_df['date'].dt.strftime('%Y-%m-%d')
                     
                     print(f"[INFO] Forward-filled trading days only (Mon-Fri)")
