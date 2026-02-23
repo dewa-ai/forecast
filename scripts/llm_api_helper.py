@@ -35,36 +35,48 @@ class BaseAPI:
     def parse_predictions(self, response: str) -> np.ndarray:
         """
         Parse LLM response to extract numerical predictions.
-        
-        Args:
-            response: Raw text response from LLM
-            
-        Returns:
-            Array of predicted values
+        Handles full JSON, partial JSON (prompt ends with '['), raw arrays, fallback.
         """
+        text = response.strip()
+
+        # Case 1: prompt ended with {"predictions": [ so LLM continues with just numbers
+        partial = re.match(r"^[\d\s.,]+", text)
+        if partial:
+            nums = re.findall(r"[\d]+\.?[\d]*", partial.group())
+            if nums:
+                try:
+                    return np.array([float(x) for x in nums])
+                except Exception:
+                    pass
+
+        # Case 2: full JSON {"predictions": [...]}
         try:
-            # Try to find JSON with predictions
-            json_match = re.search(r'\{.*?"predictions".*?\[.*?\].*?\}', response, re.DOTALL)
-            
+            json_match = re.search(r"\{[^{}]*predictions[^{}]*\}", text, re.DOTALL)
             if json_match:
-                json_str = json_match.group()
-                data = json.loads(json_str)
-                predictions = np.array(data['predictions'])
-                return predictions
-            
-            # Fallback: try to find array directly
-            array_match = re.search(r'\[([\d.,\s]+)\]', response)
+                data = json.loads(json_match.group())
+                return np.array(data["predictions"])
+        except Exception:
+            pass
+
+        # Case 3: find any array of numbers
+        try:
+            array_match = re.search(r"\[([\d.,\s]+)\]", text)
             if array_match:
-                array_str = array_match.group(1)
-                predictions = np.array([float(x.strip()) for x in array_str.split(',')])
-                return predictions
-            
-            raise ValueError("Could not parse predictions from response")
-        
-        except Exception as e:
-            print(f"Error parsing response: {e}")
-            print(f"Response preview: {response[:500]}")
-            raise
+                nums = [float(x.strip()) for x in array_match.group(1).split(",") if x.strip()]
+                if nums:
+                    return np.array(nums)
+        except Exception:
+            pass
+
+        # Case 4: extract all decimal numbers from response
+        all_nums = re.findall(r"\b\d+\.\d+\b", text)
+        if all_nums:
+            try:
+                return np.array([float(x) for x in all_nums[:20]])
+            except Exception:
+                pass
+
+        raise ValueError("Could not parse predictions from response")
 
 
 class vLLMAPI(BaseAPI):
@@ -73,14 +85,18 @@ class vLLMAPI(BaseAPI):
     
     FREE - Runs on your L40S GPU.
     Start servers with: bash scripts/start_vllm_servers.sh
+
+    NOTE: Uses ports 18000-18002 (not 8000-8002) to avoid conflicts
+    with other users on shared lab GPUs.
     """
     
     def __init__(self):
         """Initialize with multi-model endpoints."""
+        # Using 18000-18002 to avoid port conflicts with other lab users
         self.endpoints = {
-            'llama3-8b': 'http://localhost:8000',
-            'qwen2.5-7b': 'http://localhost:8001',
-            'mistral-7b': 'http://localhost:8002'
+            'llama3-8b': 'http://localhost:18000',
+            'qwen2.5-7b': 'http://localhost:18001',
+            'mistral-7b': 'http://localhost:18002'
         }
 
         # Model ID yang digunakan saat serve vLLM
@@ -110,10 +126,8 @@ class vLLMAPI(BaseAPI):
 
         model_id = self.model_ids.get(model)
 
-        # FIXED: gunakan /v1/chat/completions (bukan /v1/completions)
         url = f"{base_url}/v1/chat/completions"
         
-        # FIXED: gunakan format messages (bukan plain prompt)
         data = {
             "model": model_id,
             "messages": [
@@ -128,7 +142,6 @@ class vLLMAPI(BaseAPI):
             response = requests.post(url, json=data, timeout=120)
             response.raise_for_status()
             result = response.json()
-            # FIXED: ambil dari choices[0].message.content (bukan choices[0].text)
             return result['choices'][0]['message']['content']
         
         except requests.exceptions.ConnectionError:
@@ -271,7 +284,7 @@ def create_forecaster_with_fallback() -> LLMForecaster:
     """
     try:
         forecaster = LLMForecaster(backend='vllm')
-        requests.get('http://localhost:8000/v1/models', timeout=2)
+        requests.get('http://localhost:18000/v1/models', timeout=2)
         print("✓ Using vLLM (GPU - fastest)")
         return forecaster
     except:

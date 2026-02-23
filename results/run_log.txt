@@ -1,0 +1,931 @@
+
+============================================================
+STARTING COMPLETE ABLATION STUDY
+  GPU 0 -> llama3-8b  (port 18000)
+  GPU 1 -> qwen2.5-7b (port 18001)
+  GPU 2 -> mistral-7b (port 18002)
+============================================================
+
+============================================================
+PHASE 1: BASELINE MODELS
+============================================================
+  USDIDR: 3699 rows, 10 news
+
+[USDIDR] short (1d)
+  ARIMA: RMSE=270.1357 DA=7.14%
+Epoch [10/20], Loss: 0.112769
+Epoch [20/20], Loss: 0.053886
+  LSTM: RMSE=1149.4669 DA=38.57%
+  XGBOOST: RMSE=413.9330 DA=40.00%
+Training iTransformer on cuda...
+Epoch [2/10], Loss: 0.028459
+Epoch [4/10], Loss: 0.022049
+Epoch [6/10], Loss: 0.015578
+Epoch [8/10], Loss: 0.016075
+Epoch [10/10], Loss: 0.016719
+Training completed!
+  ITRANSFORMER: RMSE=254.4270 DA=50.00%
+
+[USDIDR] medium (5d)
+  ARIMA: RMSE=270.1357 DA=7.14%
+Epoch [10/20], Loss: 0.134480
+Epoch [20/20], Loss: 0.056298
+  LSTM: RMSE=961.9893 DA=31.43%
+  XGBOOST: RMSE=413.9330 DA=40.00%
+Training iTransformer on cuda...
+Epoch [2/10], Loss: 0.038610
+Epoch [4/10], Loss: 0.030950
+Epoch [6/10], Loss: 0.028283
+Epoch [8/10], Loss: 0.026159
+Epoch [10/10], Loss: 0.024253
+Training completed!
+  ITRANSFORMER: RMSE=552.7583 DA=47.14%
+
+[USDIDR] long (10d)
+  ARIMA: RMSE=270.1357 DA=7.14%
+Epoch [10/20], Loss: 0.111257
+Epoch [20/20], Loss: 0.049906
+  LSTM: RMSE=1018.5622 DA=35.71%
+  XGBOOST: RMSE=413.9330 DA=40.00%
+Training iTransformer on cuda...
+Epoch [2/10], Loss: 0.059060
+Epoch [4/10], Loss: 0.044645
+Epoch [6/10], Loss: 0.038995
+Epoch [8/10], Loss: 0.037613
+Epoch [10/10], Loss: 0.036338
+Training completed!
+  ITRANSFORMER: RMSE=248.2778 DA=54.29%
+  USDEUR: 3697 rows, 10 news
+
+[USDEUR] short (1d)
+  ARIMA: RMSE=0.0098 DA=49.30%
+Epoch [10/20], Loss: 0.032066
+Epoch [20/20], Loss: 0.028926
+  LSTM: RMSE=0.0360 DA=26.76%
+  XGBOOST: RMSE=0.0131 DA=18.31%
+Training iTransformer on cuda...
+Epoch [2/10], Loss: 0.027140
+Epoch [4/10], Loss: 0.021034
+Epoch [6/10], Loss: 0.017792
+Epoch [8/10], Loss: 0.015240
+Epoch [10/10], Loss: 0.014738
+Training completed!
+  ITRANSFORMER: RMSE=0.0929 DA=42.25%
+
+[USDEUR] medium (5d)
+  ARIMA: RMSE=0.0098 DA=49.30%
+Epoch [10/20], Loss: 0.057228
+Epoch [20/20], Loss: 0.037516
+  LSTM: RMSE=0.0156 DA=23.94%
+  XGBOOST: RMSE=0.0131 DA=18.31%
+Training iTransformer on cuda...
+Epoch [2/10], Loss: 0.047288
+Epoch [4/10], Loss: 0.035524
+Epoch [6/10], Loss: 0.031809
+Epoch [8/10], Loss: 0.028904
+Epoch [10/10], Loss: 0.030220
+Training completed!
+  ITRANSFORMER: RMSE=0.0119 DA=52.11%
+
+[USDEUR] long (10d)
+  ARIMA: RMSE=0.0098 DA=49.30%
+Epoch [10/20], Loss: 0.169052
+Epoch [20/20], Loss: 0.038814
+  LSTM: RMSE=0.0075 DA=30.99%
+  XGBOOST: RMSE=0.0131 DA=18.31%
+Training iTransformer on cuda...
+Epoch [2/10], Loss: 0.064072
+Epoch [4/10], Loss: 0.052475
+Epoch [6/10], Loss: 0.044680
+Epoch [8/10], Loss: 0.049823
+Epoch [10/10], Loss: 0.039638
+Training completed!
+  ITRANSFORMER: RMSE=0.0078 DA=46.48%
+  USDSGD: 3697 rows, 10 news
+
+[USDSGD] short (1d)
+  ARIMA: RMSE=0.0143 DA=0.00%
+Epoch [10/20], Loss: 0.041783
+Epoch [20/20], Loss: 0.031767
+  LSTM: RMSE=0.0245 DA=30.99%
+  XGBOOST: RMSE=0.0185 DA=11.27%
+Training iTransformer on cuda...
+Epoch [2/10], Loss: 0.037901
+Epoch [4/10], Loss: 0.027734
+Epoch [6/10], Loss: 0.024680
+Epoch [8/10], Loss: 0.024112
+Epoch [10/10], Loss: 0.026303
+Training completed!
+  ITRANSFORMER: RMSE=0.0243 DA=43.66%
+
+[USDSGD] medium (5d)
+  ARIMA: RMSE=0.0143 DA=0.00%
+Epoch [10/20], Loss: 0.119880
+Epoch [20/20], Loss: 0.048531
+  LSTM: RMSE=0.0409 DA=32.39%
+  XGBOOST: RMSE=0.0185 DA=11.27%
+Training iTransformer on cuda...
+Epoch [2/10], Loss: 0.068801
+Epoch [4/10], Loss: 0.061291
+Epoch [6/10], Loss: 0.054222
+Epoch [8/10], Loss: 0.052169
+Epoch [10/10], Loss: 0.048731
+Training completed!
+  ITRANSFORMER: RMSE=0.0217 DA=49.30%
+
+[USDSGD] long (10d)
+  ARIMA: RMSE=0.0143 DA=0.00%
+Epoch [10/20], Loss: 0.127624
+Epoch [20/20], Loss: 0.046992
+  LSTM: RMSE=0.0438 DA=32.39%
+  XGBOOST: RMSE=0.0185 DA=11.27%
+Training iTransformer on cuda...
+Epoch [2/10], Loss: 0.103742
+Epoch [4/10], Loss: 0.089683
+Epoch [6/10], Loss: 0.086105
+Epoch [8/10], Loss: 0.081313
+Epoch [10/10], Loss: 0.080514
+Training completed!
+  ITRANSFORMER: RMSE=0.0263 DA=42.25%
+  USDTWD: 3699 rows, 10 news
+
+[USDTWD] short (1d)
+  ARIMA: RMSE=0.7337 DA=9.86%
+Epoch [10/20], Loss: 0.077564
+Epoch [20/20], Loss: 0.048128
+  LSTM: RMSE=1.0147 DA=30.99%
+  XGBOOST: RMSE=0.6934 DA=11.27%
+Training iTransformer on cuda...
+Epoch [2/10], Loss: 0.023465
+Epoch [4/10], Loss: 0.018968
+Epoch [6/10], Loss: 0.017293
+Epoch [8/10], Loss: 0.017201
+Epoch [10/10], Loss: 0.016302
+Training completed!
+  ITRANSFORMER: RMSE=0.5961 DA=50.70%
+
+[USDTWD] medium (5d)
+  ARIMA: RMSE=0.7337 DA=9.86%
+Epoch [10/20], Loss: 0.204421
+Epoch [20/20], Loss: 0.060231
+  LSTM: RMSE=0.4439 DA=43.66%
+  XGBOOST: RMSE=0.6934 DA=11.27%
+Training iTransformer on cuda...
+Epoch [2/10], Loss: 0.033681
+Epoch [4/10], Loss: 0.026180
+Epoch [6/10], Loss: 0.023958
+Epoch [8/10], Loss: 0.022113
+Epoch [10/10], Loss: 0.020143
+Training completed!
+  ITRANSFORMER: RMSE=0.1268 DA=47.89%
+
+[USDTWD] long (10d)
+  ARIMA: RMSE=0.7337 DA=9.86%
+Epoch [10/20], Loss: 0.113768
+Epoch [20/20], Loss: 0.056823
+  LSTM: RMSE=0.8552 DA=26.76%
+  XGBOOST: RMSE=0.6934 DA=11.27%
+Training iTransformer on cuda...
+Epoch [2/10], Loss: 0.039529
+Epoch [4/10], Loss: 0.032471
+Epoch [6/10], Loss: 0.029175
+Epoch [8/10], Loss: 0.027653
+Epoch [10/10], Loss: 0.027127
+Training completed!
+  ITRANSFORMER: RMSE=0.9579 DA=47.89%
+  USDAUD: 3699 rows, 10 news
+
+[USDAUD] short (1d)
+  ARIMA: RMSE=0.0196 DA=1.41%
+Epoch [10/20], Loss: 0.035843
+Epoch [20/20], Loss: 0.029219
+  LSTM: RMSE=0.1057 DA=33.80%
+  XGBOOST: RMSE=0.0328 DA=30.99%
+Training iTransformer on cuda...
+Epoch [2/10], Loss: 0.037055
+Epoch [4/10], Loss: 0.021671
+Epoch [6/10], Loss: 0.019997
+Epoch [8/10], Loss: 0.018741
+Epoch [10/10], Loss: 0.017981
+Training completed!
+  ITRANSFORMER: RMSE=0.0391 DA=56.34%
+
+[USDAUD] medium (5d)
+  ARIMA: RMSE=0.0196 DA=1.41%
+Epoch [10/20], Loss: 0.086178
+Epoch [20/20], Loss: 0.038359
+  LSTM: RMSE=0.0649 DA=32.39%
+  XGBOOST: RMSE=0.0328 DA=30.99%
+Training iTransformer on cuda...
+Epoch [2/10], Loss: 0.058857
+Epoch [4/10], Loss: 0.038626
+Epoch [6/10], Loss: 0.038459
+Epoch [8/10], Loss: 0.037055
+Epoch [10/10], Loss: 0.032214
+Training completed!
+  ITRANSFORMER: RMSE=0.0255 DA=47.89%
+
+[USDAUD] long (10d)
+  ARIMA: RMSE=0.0196 DA=1.41%
+Epoch [10/20], Loss: 0.027145
+Epoch [20/20], Loss: 0.026154
+  LSTM: RMSE=0.1228 DA=32.39%
+  XGBOOST: RMSE=0.0328 DA=30.99%
+Training iTransformer on cuda...
+Epoch [2/10], Loss: 0.076034
+Epoch [4/10], Loss: 0.062454
+Epoch [6/10], Loss: 0.062291
+Epoch [8/10], Loss: 0.054166
+Epoch [10/10], Loss: 0.052330
+Training completed!
+  ITRANSFORMER: RMSE=0.0415 DA=46.48%
+[SAVED] results/ablation_results.json
+
+============================================================
+PHASE 2: LLM ABLATION (parallel -- one model per GPU)
+============================================================
+
+[SERVERS] Launching all 3 servers in parallel...
+  [llama3-8b] Launched on GPU 0, port 18000
+  [qwen2.5-7b] Launched on GPU 1, port 18001
+  [mistral-7b] Launched on GPU 2, port 18002
+
+[SERVERS] Waiting for all servers to be ready...
+  [10s] Still waiting: ['llama3-8b', 'qwen2.5-7b', 'mistral-7b']
+  [20s] Still waiting: ['llama3-8b', 'qwen2.5-7b', 'mistral-7b']
+  [llama3-8b] Ready after 30s
+  [qwen2.5-7b] Ready after 30s
+  [mistral-7b] Ready after 30s
+[SERVERS] Ready: ['llama3-8b', 'qwen2.5-7b', 'mistral-7b']
+
+############################################################
+# LLM: llama3-8b
+############################################################
+  USDIDR: 3699 rows, 10 news
+
+  [USDIDR] short (1d)
+[vllm/llama3-8b] Calling LLM...
+✓ Received 1 predictions
+    baseline_llm: RMSE=135.2425 DA=0.00%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 1 predictions
+    news_only: RMSE=138.3949 DA=0.00%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 1 predictions
+    prompt_only: RMSE=135.2425 DA=0.00%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 1 predictions
+    full_model: RMSE=138.3949 DA=0.00%
+
+  [USDIDR] medium (5d)
+[vllm/llama3-8b] Calling LLM...
+✓ Received 5 predictions
+    baseline_llm: RMSE=136.8091 DA=48.53%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 5 predictions
+    news_only: RMSE=136.8091 DA=48.53%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 5 predictions
+    prompt_only: RMSE=125.4816 DA=51.47%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 5 predictions
+    full_model: RMSE=124.0889 DA=51.47%
+
+  [USDIDR] long (10d)
+[vllm/llama3-8b] Calling LLM...
+✓ Received 10 predictions
+    baseline_llm: RMSE=129.2784 DA=50.00%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 10 predictions
+    news_only: RMSE=139.9111 DA=50.00%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 10 predictions
+    prompt_only: RMSE=119.2644 DA=50.00%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 10 predictions
+    full_model: RMSE=116.3741 DA=50.00%
+  USDEUR: 3697 rows, 10 news
+
+  [USDEUR] short (1d)
+[vllm/llama3-8b] Calling LLM...
+✓ Received 1 predictions
+    baseline_llm: RMSE=0.0176 DA=0.00%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 1 predictions
+    news_only: RMSE=0.0174 DA=0.00%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 1 predictions
+    prompt_only: RMSE=0.0176 DA=0.00%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 1 predictions
+    full_model: RMSE=0.0157 DA=0.00%
+
+  [USDEUR] medium (5d)
+[vllm/llama3-8b] Calling LLM...
+✓ Received 5 predictions
+    baseline_llm: RMSE=0.0196 DA=42.03%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 5 predictions
+    news_only: RMSE=0.0150 DA=57.97%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 5 predictions
+    prompt_only: RMSE=0.0197 DA=42.03%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 5 predictions
+    full_model: RMSE=0.0192 DA=42.03%
+
+  [USDEUR] long (10d)
+[vllm/llama3-8b] Calling LLM...
+✓ Received 10 predictions
+    baseline_llm: RMSE=0.0174 DA=44.93%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 10 predictions
+    news_only: RMSE=0.0188 DA=44.93%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 10 predictions
+    prompt_only: RMSE=0.0226 DA=44.93%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 10 predictions
+    full_model: RMSE=0.0210 DA=44.93%
+  USDSGD: 3697 rows, 10 news
+
+  [USDSGD] short (1d)
+[vllm/llama3-8b] Calling LLM...
+✓ Received 1 predictions
+    baseline_llm: RMSE=0.0337 DA=0.00%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 1 predictions
+    news_only: RMSE=0.0291 DA=0.00%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 1 predictions
+    prompt_only: RMSE=0.0318 DA=0.00%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 1 predictions
+    full_model: RMSE=0.0291 DA=0.00%
+
+  [USDSGD] medium (5d)
+[vllm/llama3-8b] Calling LLM...
+✓ Received 5 predictions
+    baseline_llm: RMSE=0.0313 DA=50.72%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 5 predictions
+    news_only: RMSE=0.0260 DA=49.28%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 5 predictions
+    prompt_only: RMSE=0.0368 DA=50.72%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 5 predictions
+    full_model: RMSE=0.0323 DA=50.72%
+
+  [USDSGD] long (10d)
+[vllm/llama3-8b] Calling LLM...
+✓ Received 10 predictions
+    baseline_llm: RMSE=0.0303 DA=56.52%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 10 predictions
+    news_only: RMSE=0.0271 DA=43.48%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 10 predictions
+    prompt_only: RMSE=0.0344 DA=56.52%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 10 predictions
+    full_model: RMSE=0.0344 DA=56.52%
+  USDTWD: 3699 rows, 10 news
+
+  [USDTWD] short (1d)
+[vllm/llama3-8b] Calling LLM...
+✓ Received 1 predictions
+    baseline_llm: RMSE=0.2120 DA=0.00%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 1 predictions
+    news_only: RMSE=0.2041 DA=0.00%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 1 predictions
+    prompt_only: RMSE=0.2012 DA=0.00%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 1 predictions
+    full_model: RMSE=0.2052 DA=0.00%
+
+  [USDTWD] medium (5d)
+[vllm/llama3-8b] Calling LLM...
+✓ Received 5 predictions
+    baseline_llm: RMSE=0.2023 DA=58.82%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 5 predictions
+    news_only: RMSE=0.2174 DA=41.18%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 5 predictions
+    prompt_only: RMSE=0.2024 DA=58.82%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 5 predictions
+    full_model: RMSE=0.2022 DA=58.82%
+
+  [USDTWD] long (10d)
+[vllm/llama3-8b] Calling LLM...
+✓ Received 10 predictions
+    baseline_llm: RMSE=0.2019 DA=54.41%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 10 predictions
+    news_only: RMSE=0.2019 DA=54.41%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 10 predictions
+    prompt_only: RMSE=0.2019 DA=54.41%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 10 predictions
+    full_model: RMSE=0.2019 DA=54.41%
+  USDAUD: 3699 rows, 10 news
+
+  [USDAUD] short (1d)
+[vllm/llama3-8b] Calling LLM...
+✓ Received 1 predictions
+    baseline_llm: RMSE=0.0951 DA=0.00%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 1 predictions
+    news_only: RMSE=0.0870 DA=0.00%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 1 predictions
+    prompt_only: RMSE=0.0951 DA=0.00%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 1 predictions
+    full_model: RMSE=0.0915 DA=0.00%
+
+  [USDAUD] medium (5d)
+[vllm/llama3-8b] Calling LLM...
+✓ Received 5 predictions
+    baseline_llm: RMSE=0.0929 DA=57.97%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 5 predictions
+    news_only: RMSE=0.0862 DA=42.03%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 5 predictions
+    prompt_only: RMSE=0.0961 DA=57.97%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 5 predictions
+    full_model: RMSE=0.0908 DA=57.97%
+
+  [USDAUD] long (10d)
+[vllm/llama3-8b] Calling LLM...
+✓ Received 10 predictions
+    baseline_llm: RMSE=0.0932 DA=59.42%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 10 predictions
+    news_only: RMSE=0.0862 DA=40.58%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 10 predictions
+    prompt_only: RMSE=0.0932 DA=59.42%
+[vllm/llama3-8b] Calling LLM...
+✓ Received 10 predictions
+    full_model: RMSE=0.0900 DA=59.42%
+[SAVED] results/ablation_results.json
+
+############################################################
+# LLM: qwen2.5-7b
+############################################################
+  USDIDR: 3699 rows, 10 news
+
+  [USDIDR] short (1d)
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 1 predictions
+    baseline_llm: RMSE=126.8201 DA=0.00%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 1 predictions
+    news_only: RMSE=85.5045 DA=0.00%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 1 predictions
+    prompt_only: RMSE=116.0325 DA=0.00%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 1 predictions
+    full_model: RMSE=126.8201 DA=0.00%
+
+  [USDIDR] medium (5d)
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 5 predictions
+    baseline_llm: RMSE=119.8145 DA=51.47%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 5 predictions
+    news_only: RMSE=87.9708 DA=48.53%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 5 predictions
+    prompt_only: RMSE=119.8145 DA=51.47%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 5 predictions
+    full_model: RMSE=119.8145 DA=51.47%
+
+  [USDIDR] long (10d)
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 10 predictions
+    baseline_llm: RMSE=125.1337 DA=50.00%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 10 predictions
+    news_only: RMSE=131.9311 DA=50.00%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 10 predictions
+    prompt_only: RMSE=111.6938 DA=50.00%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 10 predictions
+    full_model: RMSE=93.5086 DA=50.00%
+  USDEUR: 3697 rows, 10 news
+
+  [USDEUR] short (1d)
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 1 predictions
+    baseline_llm: RMSE=0.0160 DA=0.00%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 1 predictions
+    news_only: RMSE=0.0157 DA=0.00%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 1 predictions
+    prompt_only: RMSE=0.0160 DA=0.00%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 1 predictions
+    full_model: RMSE=0.0157 DA=0.00%
+
+  [USDEUR] medium (5d)
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 5 predictions
+    baseline_llm: RMSE=0.0161 DA=42.03%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 5 predictions
+    news_only: RMSE=0.0161 DA=42.03%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 5 predictions
+    prompt_only: RMSE=0.0156 DA=42.03%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 5 predictions
+    full_model: RMSE=0.0151 DA=42.03%
+
+  [USDEUR] long (10d)
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 10 predictions
+    baseline_llm: RMSE=0.0171 DA=44.93%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 10 predictions
+    news_only: RMSE=0.0155 DA=44.93%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 10 predictions
+    prompt_only: RMSE=0.0166 DA=44.93%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 10 predictions
+    full_model: RMSE=0.0155 DA=44.93%
+  USDSGD: 3697 rows, 10 news
+
+  [USDSGD] short (1d)
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 1 predictions
+    baseline_llm: RMSE=0.0287 DA=0.00%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 1 predictions
+    news_only: RMSE=0.0259 DA=0.00%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 1 predictions
+    prompt_only: RMSE=0.0284 DA=0.00%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 1 predictions
+    full_model: RMSE=0.0284 DA=0.00%
+
+  [USDSGD] medium (5d)
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 5 predictions
+    baseline_llm: RMSE=0.0289 DA=50.72%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 5 predictions
+    news_only: RMSE=0.0293 DA=50.72%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 5 predictions
+    prompt_only: RMSE=0.0291 DA=50.72%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 5 predictions
+    full_model: RMSE=0.0291 DA=50.72%
+
+  [USDSGD] long (10d)
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 10 predictions
+    baseline_llm: RMSE=0.0284 DA=0.00%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 10 predictions
+    news_only: RMSE=0.0284 DA=0.00%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 10 predictions
+    prompt_only: RMSE=0.0284 DA=0.00%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 10 predictions
+    full_model: RMSE=0.0284 DA=0.00%
+  USDTWD: 3699 rows, 10 news
+
+  [USDTWD] short (1d)
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 1 predictions
+    baseline_llm: RMSE=0.2026 DA=0.00%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 1 predictions
+    news_only: RMSE=0.2012 DA=0.00%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 1 predictions
+    prompt_only: RMSE=0.2026 DA=0.00%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 1 predictions
+    full_model: RMSE=0.2026 DA=0.00%
+
+  [USDTWD] medium (5d)
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 5 predictions
+    baseline_llm: RMSE=0.2006 DA=58.82%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 5 predictions
+    news_only: RMSE=0.2139 DA=58.82%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 5 predictions
+    prompt_only: RMSE=0.2139 DA=58.82%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 5 predictions
+    full_model: RMSE=0.2139 DA=58.82%
+
+  [USDTWD] long (10d)
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 10 predictions
+    baseline_llm: RMSE=0.2092 DA=54.41%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 10 predictions
+    news_only: RMSE=0.2009 DA=45.59%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 10 predictions
+    prompt_only: RMSE=0.2026 DA=0.00%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 10 predictions
+    full_model: RMSE=0.2026 DA=0.00%
+  USDAUD: 3699 rows, 10 news
+
+  [USDAUD] short (1d)
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 1 predictions
+    baseline_llm: RMSE=0.0954 DA=0.00%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 1 predictions
+    news_only: RMSE=0.0897 DA=0.00%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 1 predictions
+    prompt_only: RMSE=0.0911 DA=0.00%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 1 predictions
+    full_model: RMSE=0.0911 DA=0.00%
+
+  [USDAUD] medium (5d)
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 5 predictions
+    baseline_llm: RMSE=0.0947 DA=57.97%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 5 predictions
+    news_only: RMSE=0.0911 DA=57.97%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 5 predictions
+    prompt_only: RMSE=0.0947 DA=57.97%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 5 predictions
+    full_model: RMSE=0.0911 DA=57.97%
+
+  [USDAUD] long (10d)
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 10 predictions
+    baseline_llm: RMSE=0.0885 DA=0.00%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 10 predictions
+    news_only: RMSE=0.0836 DA=40.58%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 10 predictions
+    prompt_only: RMSE=0.0885 DA=0.00%
+[vllm/qwen2.5-7b] Calling LLM...
+✓ Received 10 predictions
+    full_model: RMSE=0.0921 DA=59.42%
+[SAVED] results/ablation_results.json
+
+############################################################
+# LLM: mistral-7b
+############################################################
+  USDIDR: 3699 rows, 10 news
+
+  [USDIDR] short (1d)
+[vllm/mistral-7b] Calling LLM...
+✓ Received 1 predictions
+    baseline_llm: RMSE=91.2596 DA=0.00%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 1 predictions
+    news_only: RMSE=91.2596 DA=0.00%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 1 predictions
+    prompt_only: RMSE=85.5045 DA=0.00%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 1 predictions
+    full_model: RMSE=85.5045 DA=0.00%
+
+  [USDIDR] medium (5d)
+[vllm/mistral-7b] Calling LLM...
+✓ Received 5 predictions
+    baseline_llm: RMSE=139.7591 DA=51.47%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 5 predictions
+    news_only: RMSE=139.7591 DA=51.47%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 5 predictions
+    prompt_only: RMSE=88.8005 DA=47.06%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 5 predictions
+    full_model: RMSE=139.7591 DA=51.47%
+
+  [USDIDR] long (10d)
+[vllm/mistral-7b] Calling LLM...
+✓ Received 10 predictions
+    baseline_llm: RMSE=91.0458 DA=50.00%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 10 predictions
+    news_only: RMSE=169.2306 DA=50.00%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 10 predictions
+    prompt_only: RMSE=95.0573 DA=50.00%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 10 predictions
+    full_model: RMSE=110.5409 DA=50.00%
+  USDEUR: 3697 rows, 10 news
+
+  [USDEUR] short (1d)
+[vllm/mistral-7b] Calling LLM...
+✓ Received 1 predictions
+    baseline_llm: RMSE=0.0179 DA=0.00%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 1 predictions
+    news_only: RMSE=0.0165 DA=0.00%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 1 predictions
+    prompt_only: RMSE=0.0214 DA=0.00%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 1 predictions
+    full_model: RMSE=0.0179 DA=0.00%
+
+  [USDEUR] medium (5d)
+[vllm/mistral-7b] Calling LLM...
+✓ Received 5 predictions
+    baseline_llm: RMSE=0.0190 DA=42.03%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 5 predictions
+    news_only: RMSE=0.0266 DA=42.03%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 5 predictions
+    prompt_only: RMSE=0.0190 DA=42.03%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 5 predictions
+    full_model: RMSE=0.0180 DA=42.03%
+
+  [USDEUR] long (10d)
+[vllm/mistral-7b] Calling LLM...
+✓ Received 10 predictions
+    baseline_llm: RMSE=1001.4963 DA=44.93%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 10 predictions
+    news_only: RMSE=5.4666 DA=55.07%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 10 predictions
+    prompt_only: RMSE=0.0201 DA=44.93%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 10 predictions
+    full_model: RMSE=0.0163 DA=44.93%
+  USDSGD: 3697 rows, 10 news
+
+  [USDSGD] short (1d)
+[vllm/mistral-7b] Calling LLM...
+✓ Received 1 predictions
+    baseline_llm: RMSE=0.0291 DA=0.00%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 1 predictions
+    news_only: RMSE=0.0305 DA=0.00%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 1 predictions
+    prompt_only: RMSE=0.0305 DA=0.00%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 1 predictions
+    full_model: RMSE=0.0305 DA=0.00%
+
+  [USDSGD] medium (5d)
+[vllm/mistral-7b] Calling LLM...
+✓ Received 5 predictions
+    baseline_llm: RMSE=0.0309 DA=50.72%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 5 predictions
+    news_only: RMSE=0.0268 DA=50.72%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 5 predictions
+    prompt_only: RMSE=0.0321 DA=50.72%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 5 predictions
+    full_model: RMSE=0.0295 DA=50.72%
+
+  [USDSGD] long (10d)
+[vllm/mistral-7b] Calling LLM...
+✓ Received 10 predictions
+    baseline_llm: RMSE=0.0298 DA=56.52%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 10 predictions
+    news_only: RMSE=0.0298 DA=56.52%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 10 predictions
+    prompt_only: RMSE=0.0323 DA=56.52%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 10 predictions
+    full_model: RMSE=0.0319 DA=56.52%
+  USDTWD: 3699 rows, 10 news
+
+  [USDTWD] short (1d)
+[vllm/mistral-7b] Calling LLM...
+✓ Received 1 predictions
+    baseline_llm: RMSE=0.2003 DA=0.00%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 1 predictions
+    news_only: RMSE=0.2026 DA=0.00%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 1 predictions
+    prompt_only: RMSE=0.2006 DA=0.00%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 1 predictions
+    full_model: RMSE=0.2026 DA=0.00%
+
+  [USDTWD] medium (5d)
+[vllm/mistral-7b] Calling LLM...
+✓ Received 5 predictions
+    baseline_llm: RMSE=0.2008 DA=58.82%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 5 predictions
+    news_only: RMSE=0.2487 DA=58.82%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 5 predictions
+    prompt_only: RMSE=0.2018 DA=58.82%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 5 predictions
+    full_model: RMSE=0.2130 DA=58.82%
+
+  [USDTWD] long (10d)
+[vllm/mistral-7b] Calling LLM...
+✓ Received 10 predictions
+    baseline_llm: RMSE=0.2021 DA=54.41%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 10 predictions
+    news_only: RMSE=0.2010 DA=54.41%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 10 predictions
+    prompt_only: RMSE=0.2021 DA=54.41%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 10 predictions
+    full_model: RMSE=0.2612 DA=54.41%
+  USDAUD: 3699 rows, 10 news
+
+  [USDAUD] short (1d)
+[vllm/mistral-7b] Calling LLM...
+✓ Received 1 predictions
+    baseline_llm: RMSE=0.0897 DA=0.00%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 1 predictions
+    news_only: RMSE=0.1002 DA=0.00%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 1 predictions
+    prompt_only: RMSE=0.0956 DA=0.00%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 1 predictions
+    full_model: RMSE=0.1002 DA=0.00%
+
+  [USDAUD] medium (5d)
+[vllm/mistral-7b] Calling LLM...
+✓ Received 5 predictions
+    baseline_llm: RMSE=0.0912 DA=57.97%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 5 predictions
+    news_only: RMSE=0.0823 DA=42.03%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 5 predictions
+    prompt_only: RMSE=0.1076 DA=57.97%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 5 predictions
+    full_model: RMSE=0.0951 DA=37.68%
+
+  [USDAUD] long (10d)
+[vllm/mistral-7b] Calling LLM...
+✓ Received 10 predictions
+    baseline_llm: RMSE=0.0810 DA=40.58%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 10 predictions
+    news_only: RMSE=0.0775 DA=40.58%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 10 predictions
+    prompt_only: RMSE=0.0892 DA=59.42%
+[vllm/mistral-7b] Calling LLM...
+✓ Received 10 predictions
+    full_model: RMSE=0.0775 DA=40.58%
+[SAVED] results/ablation_results.json
+
+[SERVERS] Stopping all servers...
+  [llama3-8b] stopped
+  [qwen2.5-7b] stopped
+  [mistral-7b] stopped
+[SAVED] results/ablation_results.json
+[SAVED] Summary CSVs -> results
+
+============================================================
+COMPLETED in 5.0 minutes
+Results -> results
+============================================================

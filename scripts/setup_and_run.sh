@@ -77,85 +77,27 @@ fi
 # Step 4: Start vLLM servers
 echo ""
 echo "[Step 4/6] Starting vLLM servers..."
-if curl -s http://localhost:8000/v1/models > /dev/null 2>&1 && \
-   curl -s http://localhost:8001/v1/models > /dev/null 2>&1 && \
-   curl -s http://localhost:8002/v1/models > /dev/null 2>&1; then
-    echo "  ✓ vLLM servers already running"
+
+# Check if servers are already running on our ports (18000-18002)
+LLAMA_OK=$(curl -s http://localhost:18000/v1/models | grep -c "id" || true)
+QWEN_OK=$(curl -s http://localhost:18001/v1/models | grep -c "id" || true)
+MISTRAL_OK=$(curl -s http://localhost:18002/v1/models | grep -c "id" || true)
+
+if [ "$LLAMA_OK" -ge 1 ] && [ "$QWEN_OK" -ge 1 ] && [ "$MISTRAL_OK" -ge 1 ]; then
+    echo "  ✓ vLLM servers already running on ports 18000-18002"
 else
     echo "  Starting servers (this may take 3-5 minutes)..."
 
+    # Check that start_vllm_servers.sh exists
     if [ ! -f "scripts/start_vllm_servers.sh" ]; then
-        echo "  Creating start_vllm_servers.sh..."
-        cat > scripts/start_vllm_servers.sh << 'EOF'
-#!/bin/bash
-set -e
-
-echo "Starting vLLM servers..."
-mkdir -p logs
-
-# Llama 3 8B
-nohup vllm serve meta-llama/Meta-Llama-3-8B-Instruct \
-    --port 8000 --gpu-memory-utilization 0.30 --dtype half \
-    > logs/llama3.log 2>&1 &
-echo "Started Llama 3 on port 8000"
-
-sleep 5
-
-# Qwen 2.5 7B
-nohup vllm serve Qwen/Qwen2.5-7B-Instruct \
-    --port 8001 --gpu-memory-utilization 0.30 --dtype half \
-    > logs/qwen.log 2>&1 &
-echo "Started Qwen 2.5 on port 8001"
-
-sleep 5
-
-# Mistral 7B
-nohup vllm serve mistralai/Mistral-7B-Instruct-v0.3 \
-    --port 8002 --gpu-memory-utilization 0.30 --dtype half \
-    > logs/mistral.log 2>&1 &
-echo "Started Mistral on port 8002"
-
-echo "All servers starting... wait 3-5 minutes for models to load"
-EOF
-        chmod +x scripts/start_vllm_servers.sh
+        echo "  [ERROR] scripts/start_vllm_servers.sh not found!"
+        echo "  Please make sure the file exists before running this script."
+        exit 1
     fi
 
     bash scripts/start_vllm_servers.sh
-
-    # Tunggu dengan loop sampai semua server ready
-    echo "  Waiting for all servers to be ready..."
-    MAX_WAIT=300  # maksimal tunggu 5 menit
-    ELAPSED=0
-    LLAMA_OK=0
-    QWEN_OK=0
-    MISTRAL_OK=0
-
-    while [ $ELAPSED -lt $MAX_WAIT ]; do
-        sleep 15
-        ELAPSED=$((ELAPSED + 15))
-
-        curl -s http://localhost:8000/v1/models > /dev/null 2>&1 && LLAMA_OK=1 || LLAMA_OK=0
-        curl -s http://localhost:8001/v1/models > /dev/null 2>&1 && QWEN_OK=1 || QWEN_OK=0
-        curl -s http://localhost:8002/v1/models > /dev/null 2>&1 && MISTRAL_OK=1 || MISTRAL_OK=0
-
-        echo "  [${ELAPSED}s] Llama:${LLAMA_OK} Qwen:${QWEN_OK} Mistral:${MISTRAL_OK}"
-
-        if [ "$LLAMA_OK" = "1" ] && [ "$QWEN_OK" = "1" ] && [ "$MISTRAL_OK" = "1" ]; then
-            echo "  ✓ All servers ready!"
-            break
-        fi
-    done
-
-    # Kalau timeout
-    if [ "$LLAMA_OK" != "1" ] || [ "$QWEN_OK" != "1" ] || [ "$MISTRAL_OK" != "1" ]; then
-        echo "  ✗ Timeout! Server belum ready setelah ${MAX_WAIT}s"
-        echo "  Cek log: tail -f logs/llama3.log"
-        echo "  Lanjut anyway? (y/n)"
-        read -r response
-        if [ "$response" != "y" ]; then
-            exit 1
-        fi
-    fi
+    # Note: start_vllm_servers.sh already waits and verifies all servers are ready.
+    # If it exits 0, all servers are up. If it exits 1, something failed.
 fi
 
 # Step 5: Run quick test
