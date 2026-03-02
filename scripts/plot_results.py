@@ -176,6 +176,84 @@ def plot_llm_config_deltas(llm: pd.DataFrame, outdir: Path) -> None:
     _savefig(outdir / "llm_da_delta_vs_baseline.png")
 
 
+def _plot_tsfl_comparison(llm: pd.DataFrame, outdir: Path) -> None:
+    """Compare TSFL strategies vs standard prompts by RMSE delta."""
+    base = llm[llm["config"].str.lower() == "baseline_llm"].copy()
+    if base.empty:
+        return
+    base = base.rename(columns={"rmse": "rmse_base"})[
+        ["currency", "horizon", "model", "rmse_base"]
+    ]
+    df = llm.merge(base, on=["currency", "horizon", "model"], how="left")
+    df["rmse_delta"] = df["rmse"] - df["rmse_base"]
+
+    # Separate TSFL vs standard
+    df["group"] = df["config"].apply(
+        lambda c: "TSFL: " + c.replace("tsfl_", "") if str(c).startswith("tsfl_") else "Standard: " + c
+    )
+
+    agg = df.groupby("group")["rmse_delta"].mean().sort_values()
+
+    plt.figure(figsize=(10, 5))
+    colors = ["#2196F3" if "TSFL" in g else "#FF9800" for g in agg.index]
+    agg.plot(kind="barh", color=colors)
+    plt.axvline(0.0, color="black", linewidth=0.8)
+    plt.xlabel("Mean RMSE delta vs baseline_llm (negative = better)")
+    plt.title("TSFL vs Standard Prompt Strategies — RMSE Improvement")
+    _savefig(outdir / "tsfl_vs_standard_rmse.png")
+
+
+def _plot_ablation4(abl4: pd.DataFrame, outdir: Path) -> None:
+    """Ablation 4: explainability metrics per model."""
+    metric_cols = [c for c in ["avg_news_grounding", "avg_coherence",
+                                "avg_n_factors", "avg_confidence"]
+                   if c in abl4.columns]
+    if not metric_cols or "model" not in abl4.columns:
+        return
+
+    agg = abl4.groupby("model")[metric_cols].mean()
+
+    fig, axes = plt.subplots(1, len(metric_cols), figsize=(4 * len(metric_cols), 4))
+    if len(metric_cols) == 1:
+        axes = [axes]
+
+    for ax, col in zip(axes, metric_cols):
+        agg[col].plot(kind="bar", ax=ax, color="#4CAF50")
+        ax.set_title(col.replace("avg_", "").replace("_", " ").title())
+        ax.set_xlabel("Model")
+        ax.tick_params(axis="x", rotation=30)
+
+    fig.suptitle("Ablation 4 — Explainability Metrics by Model")
+    _savefig(outdir / "ablation4_explainability_metrics.png")
+
+
+def _plot_ablation5(abl5: pd.DataFrame, outdir: Path) -> None:
+    """Ablation 5: correlation heatmap — explanation quality vs prediction accuracy."""
+    if "model" not in abl5.columns:
+        return
+
+    corr_cols = [c for c in abl5.columns
+                 if c.startswith("corr_") and "abs_pred_error" in c]
+    da_cols   = [c for c in abl5.columns
+                 if c.startswith("corr_") and "directional" in c]
+
+    if not corr_cols:
+        return
+
+    models = abl5["model"].unique()
+    data_matrix = abl5.set_index("model")[corr_cols].fillna(0)
+    short_labels = [c.replace("corr_", "").replace("_vs_abs_pred_error", "") for c in corr_cols]
+
+    plt.figure(figsize=(max(8, len(corr_cols) * 1.2), max(3, len(models) * 0.8)))
+    im = plt.imshow(data_matrix.values, cmap="RdYlGn", vmin=-1, vmax=1, aspect="auto")
+    plt.colorbar(im, label="Pearson r")
+    plt.xticks(range(len(short_labels)), short_labels, rotation=45, ha="right", fontsize=8)
+    plt.yticks(range(len(models)), data_matrix.index, fontsize=8)
+    plt.title("Ablation 5 — Corr(Explanation Feature, Prediction Error)\n"
+              "Negative = better explanations → lower error (good)")
+    _savefig(outdir / "ablation5_correlation_heatmap.png")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--results-dir", type=str, default="results")
@@ -200,6 +278,22 @@ def main() -> None:
 
     if llm is not None:
         plot_llm_config_deltas(llm, outdir)
+
+        # TSFL vs standard prompts subplot
+        tsfl_rows = llm[llm["config"].str.startswith("tsfl_")] if "config" in llm.columns else pd.DataFrame()
+        std_rows  = llm[~llm["config"].str.startswith("tsfl_")] if "config" in llm.columns else llm
+        if not tsfl_rows.empty:
+            _plot_tsfl_comparison(llm, outdir)
+
+    # Ablation 4 plots
+    abl4 = _load_csv(rdir / "ablation4_summary.csv")
+    if abl4 is not None:
+        _plot_ablation4(abl4, outdir)
+
+    # Ablation 5 plots
+    abl5 = _load_csv(rdir / "ablation5_correlations.csv")
+    if abl5 is not None:
+        _plot_ablation5(abl5, outdir)
 
     print(f"[OK] Plots saved to: {outdir.resolve()}")
 

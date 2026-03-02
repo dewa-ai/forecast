@@ -193,6 +193,46 @@ def main() -> None:
             print("\nBest LLM config per model (by mean RMSE improvement):")
             print(best_cfg[["model", "config", "mean_rmse_delta", "mean_da_delta", "n"]].to_string(index=False))
 
+            # TSFL vs standard prompts
+            tsfl_configs = grp[grp["config"].str.startswith("tsfl_")]
+            std_configs  = grp[~grp["config"].str.startswith("tsfl_") & (grp["config"] != "baseline_llm")]
+            if not tsfl_configs.empty and not std_configs.empty:
+                print("\n" + "=" * 72)
+                print("TSFL (Time Series as Foreign Language) vs Standard Prompts")
+                print("=" * 72)
+                tsfl_avg = tsfl_configs["mean_rmse_delta"].mean()
+                std_avg  = std_configs["mean_rmse_delta"].mean()
+                print(f"Mean RMSE delta — TSFL configs: {tsfl_avg:+.4f}  |  Standard configs: {std_avg:+.4f}")
+                print("(negative = improvement over baseline_llm)")
+                print(tsfl_configs[["model", "config", "mean_rmse_delta", "mean_da_delta"]].to_string(index=False))
+
+    # ── Ablation 4: Explainability summary ─────────────────────────────────
+    abl4 = _load_csv(rdir / "ablation4_summary.csv", "ablation4_summary.csv")
+    if abl4 is not None:
+        print("\n" + "=" * 72)
+        print("ABLATION 4 — Explainability Metrics")
+        print("=" * 72)
+        cols = [c for c in ["model", "avg_news_grounding", "avg_explanation_len",
+                             "avg_coherence", "avg_n_factors", "avg_confidence", "n_samples"]
+                if c in abl4.columns]
+        if cols:
+            agg = abl4.groupby("model")[
+                [c for c in cols if c != "model"]
+            ].mean().reset_index()
+            print(agg.to_string(index=False))
+        else:
+            print(abl4.head(20).to_string(index=False))
+
+    # ── Ablation 5: Explanation-Prediction Correlation ──────────────────────
+    abl5 = _load_csv(rdir / "ablation5_correlations.csv", "ablation5_correlations.csv")
+    if abl5 is not None:
+        print("\n" + "=" * 72)
+        print("ABLATION 5 — Explanation-Prediction Correlations")
+        print("(negative corr with abs_pred_error = better explanations → lower error)")
+        print("(positive corr with directional_accuracy = better explanations → higher DA)")
+        print("=" * 72)
+        print(abl5.to_string(index=False))
+
 
 if __name__ == "__main__":
     main()

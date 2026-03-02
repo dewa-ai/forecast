@@ -13,8 +13,18 @@ GPU assignment:
   GPU 1 -> Qwen2.5-7B (port 18001)
   GPU 2 -> Mistral-7B (port 18002)
 
+Ablation study map:
+  Ablation 1 (News)        : news=False,zero  vs  news=True,zero
+  Ablation 2 (Prompt)      : news=False,zero  vs  news=False,few
+  Ablation 3 (Interaction) : 2x2 full factorial (news x prompt)
+  Ablation 4 (Explain)     : explainability metrics (coherence, grounding, factor coverage)
+  Ablation 5 (Corr)        : correlation between explanation quality and prediction accuracy
+  TSFL                     : Time Series as Foreign Language (ChatTime-inspired tokenization)
+
 Usage:
     python3 scripts/run_full_ablation.py --output results/
+    python3 scripts/run_full_ablation.py --output results/ --skip-explain  # skip abl4&5
+    python3 scripts/run_full_ablation.py --output results/ --skip-tsfl     # skip TSFL
 """
 
 import argparse
@@ -36,6 +46,8 @@ from itransformer_model import iTransformerForecaster
 from llm_prompts import PromptBuilder
 from llm_api_helper import LLMForecaster
 from evaluation_metrics import calculate_all_metrics
+from ts_tokenizer import TSFLPromptBuilder
+from explainability_ablation import ExplainabilityAblation
 
 
 # -- Server config: one model per GPU -----------------------------------------
@@ -148,6 +160,11 @@ class AblationStudyRunner:
             "news_only":    {"news": True,  "prompt": "zero"},
             "prompt_only":  {"news": False, "prompt": "few"},
             "full_model":   {"news": True,  "prompt": "few"},
+            # Ablation TSFL — Time Series as Foreign Language (ChatTime-inspired)
+            "tsfl_word":    {"news": False, "prompt": "tsfl_word"},
+            "tsfl_patch":   {"news": False, "prompt": "tsfl_patch"},
+            "tsfl_signal":  {"news": False, "prompt": "tsfl_signal"},
+            "tsfl_patch_news": {"news": True, "prompt": "tsfl_patch"},
         }
 
         self.results = {
@@ -281,18 +298,40 @@ class AblationStudyRunner:
 
         for config_name, config in self.ablation_configs.items():
             try:
-                builder = PromptBuilder(currency_pair=currency, horizon=horizon)
-                if config["news"] and config["prompt"] == "few":
-                    prompt = builder.build_few_shot_with_news(
-                        context_data, news, lookback_days=30, n_examples=3)
-                elif config["news"] and config["prompt"] == "zero":
-                    prompt = builder.build_news_augmented(
-                        context_data, news, lookback_days=30)
-                elif not config["news"] and config["prompt"] == "few":
-                    prompt = builder.build_few_shot(
-                        context_data, lookback_days=30, n_examples=3)
+                prompt_type = config["prompt"]
+
+                # --- TSFL (Time Series as Foreign Language) prompts ---
+                if prompt_type.startswith("tsfl_"):
+                    strategy = prompt_type.replace("tsfl_", "")  # word / patch / signal
+                    if strategy == "patch_news":
+                        strategy = "patch"
+                    tsfl_builder = TSFLPromptBuilder(
+                        currency_pair=currency,
+                        horizon=horizon,
+                        strategy=strategy,
+                        patch_size=5,
+                    )
+                    if config["news"]:
+                        prompt = tsfl_builder.build_tsfl_with_news(
+                            context_data, news, lookback_days=30, max_news=5)
+                    else:
+                        prompt = tsfl_builder.build_tsfl_zero_shot(
+                            context_data, lookback_days=30)
+
+                # --- Standard LLM prompts ---
                 else:
-                    prompt = builder.build_zero_shot(context_data, lookback_days=30)
+                    builder = PromptBuilder(currency_pair=currency, horizon=horizon)
+                    if config["news"] and prompt_type == "few":
+                        prompt = builder.build_few_shot_with_news(
+                            context_data, news, lookback_days=30, n_examples=3)
+                    elif config["news"] and prompt_type == "zero":
+                        prompt = builder.build_news_augmented(
+                            context_data, news, lookback_days=30)
+                    elif not config["news"] and prompt_type == "few":
+                        prompt = builder.build_few_shot(
+                            context_data, lookback_days=30, n_examples=3)
+                    else:
+                        prompt = builder.build_zero_shot(context_data, lookback_days=30)
 
                 pred_raw = forecaster.predict(prompt, model=llm_model)
                 if len(pred_raw) < test_size:
@@ -313,6 +352,42 @@ class AblationStudyRunner:
             except Exception as e:
                 print(f"    {config_name} ERROR: {e}")
         return results
+
+    # -- Explainability phase (Ablation 4 & 5) ---------------------------------
+
+    def run_all_explainability(self, skip: bool = False):
+        if skip:
+            print("\n[SKIP] Ablation 4 & 5 (--skip-explain flag)")
+            return
+
+        print("\n" + "="*60)
+        print("PHASE 3: ABLATION 4 & 5 (EXPLAINABILITY)")
+        print("="*60)
+
+        procs = start_all_servers()
+        if not procs:
+            print("ERROR: No LLM servers. Skipping explainability ablation.")
+            return
+
+        try:
+            forecaster = LLMForecaster(backend="vllm")
+            abl = ExplainabilityAblation(forecaster, output_dir=str(self.output_dir))
+
+            for currency in self.currencies:
+                data_file = self.data_dir / f"{currency}.csv"
+                news_file = self.news_dir / f"{currency}_news.json"
+                if not data_file.exists():
+                    continue
+                data = pd.read_csv(data_file)
+                news = json.load(open(news_file)) if news_file.exists() else []
+
+                for horizon_name, horizon in self.horizons.items():
+                    available_models = [m for m in self.llm_models if m in procs]
+                    abl.run(data, news, currency, horizon, llm_models=available_models)
+
+            print("\n[OK] Ablation 4 & 5 complete. Check results/ablation4_*.csv and ablation5_*.csv")
+        finally:
+            stop_all_servers(procs)
 
     # -- Save / summary -------------------------------------------------------
 
@@ -336,17 +411,28 @@ class AblationStudyRunner:
             self.output_dir / "combined_summary.csv", index=False)
         print(f"[SAVED] Summary CSVs -> {self.output_dir}")
 
-    def run_all(self):
+    def run_all(self, skip_explain: bool = False, skip_tsfl: bool = False):
         start_time = datetime.now()
         print("\n" + "="*60)
         print("STARTING COMPLETE ABLATION STUDY")
         print(f"  GPU 0 -> llama3-8b  (port 18000)")
         print(f"  GPU 1 -> qwen2.5-7b (port 18001)")
         print(f"  GPU 2 -> mistral-7b (port 18002)")
+        print(f"  Ablations 1-3: news/prompt/interaction")
+        print(f"  Ablation TSFL: Time Series as Foreign Language {'[SKIP]' if skip_tsfl else ''}")
+        print(f"  Ablation 4-5:  explainability + correlation {'[SKIP]' if skip_explain else ''}")
         print("="*60)
+
+        # If skip_tsfl, remove TSFL configs from ablation_configs
+        if skip_tsfl:
+            self.ablation_configs = {
+                k: v for k, v in self.ablation_configs.items()
+                if not k.startswith("tsfl_")
+            }
 
         self.run_all_baselines()
         self.run_all_llms()
+        self.run_all_explainability(skip=skip_explain)
 
         elapsed = datetime.now() - start_time
         self.results["metadata"]["end_time"] = datetime.now().isoformat()
@@ -362,9 +448,13 @@ class AblationStudyRunner:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data-dir", default="data/fx_filled")
-    parser.add_argument("--news-dir", default="data/fx_news")
-    parser.add_argument("--output",   default="results")
+    parser.add_argument("--data-dir",     default="data/fx_filled")
+    parser.add_argument("--news-dir",     default="data/fx_news")
+    parser.add_argument("--output",       default="results")
+    parser.add_argument("--skip-explain", action="store_true",
+                        help="Skip Ablation 4 & 5 (explainability)")
+    parser.add_argument("--skip-tsfl",    action="store_true",
+                        help="Skip TSFL (Time Series as Foreign Language) ablation")
     args = parser.parse_args()
 
     # Kill only this user's stale vLLM servers (if any) before starting new ones
@@ -373,7 +463,7 @@ def main():
     time.sleep(3)
 
     runner = AblationStudyRunner(args.data_dir, args.news_dir, args.output)
-    runner.run_all()
+    runner.run_all(skip_explain=args.skip_explain, skip_tsfl=args.skip_tsfl)
 
 
 if __name__ == "__main__":
