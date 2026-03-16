@@ -1,0 +1,61 @@
+currency,horizon,model,window_idx,news_grounding_rate,explanation_len,coherence_score,factor_types,n_factors_cited,confidence_score
+USDSGD,1,llama3-8b,0,0.7,55,0.6,"[""monetary_policy"", ""risk_sentiment""]",2,0.5
+USDSGD,1,llama3-8b,1,0.7,53,0.65,"[""monetary_policy"", ""inflation"", ""risk_sentiment""]",3,0.5
+USDSGD,1,llama3-8b,2,0.7,49,0.694,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth""]",4,0.5
+USDSGD,1,llama3-8b,3,0.2,34,0.504,"[""monetary_policy"", ""risk_sentiment"", ""market_technical""]",3,0.7
+USDSGD,1,llama3-8b,4,0.7,48,0.638,"[""monetary_policy"", ""risk_sentiment"", ""market_technical""]",3,0.5
+USDSGD,1,llama3-8b,5,0.7,55,0.6,"[""monetary_policy"", ""risk_sentiment""]",2,0.5
+USDSGD,1,llama3-8b,6,0.1,36,0.466,"[""monetary_policy"", ""inflation""]",2,0.7
+USDSGD,1,llama3-8b,7,0.2,34,0.504,"[""monetary_policy"", ""risk_sentiment"", ""market_technical""]",3,0.8
+USDSGD,1,llama3-8b,8,0.7,55,0.6,"[""monetary_policy"", ""risk_sentiment""]",2,0.5
+USDSGD,1,llama3-8b,9,0.7,55,0.6,"[""monetary_policy"", ""risk_sentiment""]",2,0.5
+USDSGD,1,llama3-8b,10,0.2,34,0.504,"[""monetary_policy"", ""risk_sentiment"", ""market_technical""]",3,0.8
+USDSGD,1,llama3-8b,11,0.2,34,0.504,"[""monetary_policy"", ""risk_sentiment"", ""market_technical""]",3,0.8
+USDSGD,1,llama3-8b,12,0.7,53,0.65,"[""monetary_policy"", ""inflation"", ""risk_sentiment""]",3,0.5
+USDSGD,1,llama3-8b,13,0.2,34,0.504,"[""monetary_policy"", ""risk_sentiment"", ""market_technical""]",3,0.8
+USDSGD,1,llama3-8b,14,0.7,54,0.6,"[""monetary_policy"", ""risk_sentiment""]",2,0.5
+USDSGD,1,llama3-8b,15,0.7,60,0.7,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",4,0.5
+USDSGD,1,llama3-8b,16,0.7,51,0.6,"[""monetary_policy"", ""risk_sentiment""]",2,0.5
+USDSGD,1,llama3-8b,17,0.7,51,0.6,"[""monetary_policy"", ""inflation"", ""risk_sentiment""]",3,0.5
+USDSGD,1,llama3-8b,18,0.7,50,0.6,"[""monetary_policy"", ""risk_sentiment""]",2,0.5
+USDSGD,1,llama3-8b,19,0.7,57,0.7,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",5,0.5
+USDSGD,1,qwen2.5-7b,0,0.2,39,0.584,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""market_technical""]",4,0.7
+USDSGD,1,qwen2.5-7b,1,0.2,38,0.528,"[""monetary_policy"", ""inflation"", ""risk_sentiment""]",3,0.7
+USDSGD,1,qwen2.5-7b,2,0.2,37,0.522,"[""monetary_policy"", ""risk_sentiment"", ""market_technical""]",3,0.7
+USDSGD,1,qwen2.5-7b,3,0.2,33,0.498,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.7
+USDSGD,1,qwen2.5-7b,4,0.2,36,0.466,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.7
+USDSGD,1,qwen2.5-7b,5,0.2,35,0.51,"[""monetary_policy"", ""inflation"", ""risk_sentiment""]",3,0.7
+USDSGD,1,qwen2.5-7b,6,0.2,33,0.498,"[""monetary_policy"", ""inflation"", ""risk_sentiment""]",3,0.7
+USDSGD,1,qwen2.5-7b,7,0.2,49,0.594,"[""monetary_policy"", ""economic_growth"", ""market_technical""]",3,0.7
+USDSGD,1,qwen2.5-7b,8,0.2,34,0.504,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.7
+USDSGD,1,qwen2.5-7b,9,0.2,32,0.492,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth""]",4,0.7
+USDSGD,1,qwen2.5-7b,10,0.2,33,0.498,"[""monetary_policy"", ""inflation"", ""economic_growth""]",3,0.7
+USDSGD,1,qwen2.5-7b,11,0.2,37,0.522,"[""monetary_policy"", ""risk_sentiment"", ""market_technical""]",3,0.7
+USDSGD,1,qwen2.5-7b,12,0.2,46,0.526,"[""monetary_policy"", ""economic_growth"", ""market_technical""]",3,0.7
+USDSGD,1,qwen2.5-7b,13,0.2,37,0.572,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",5,0.7
+USDSGD,1,qwen2.5-7b,14,0.2,36,0.516,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""market_technical""]",4,0.7
+USDSGD,1,qwen2.5-7b,15,0.2,37,0.572,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth""]",4,0.7
+USDSGD,1,qwen2.5-7b,16,0.2,35,0.51,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth""]",4,0.7
+USDSGD,1,qwen2.5-7b,17,0.2,33,0.448,"[""monetary_policy"", ""inflation"", ""risk_sentiment""]",3,0.7
+USDSGD,1,qwen2.5-7b,18,0.2,38,0.628,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",5,0.7
+USDSGD,1,qwen2.5-7b,19,0.2,58,0.65,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""market_technical""]",4,0.7
+USDSGD,1,mistral-7b,0,0.2,38,0.478,"[""monetary_policy"", ""inflation"", ""risk_sentiment""]",3,0.65
+USDSGD,1,mistral-7b,1,0.2,38,0.478,"[""monetary_policy"", ""inflation"", ""risk_sentiment""]",3,0.65
+USDSGD,1,mistral-7b,2,0.2,47,0.582,"[""monetary_policy"", ""risk_sentiment""]",2,0.65
+USDSGD,1,mistral-7b,3,0.2,47,0.532,"[""monetary_policy"", ""risk_sentiment"", ""market_technical""]",3,0.75
+USDSGD,1,mistral-7b,4,0.2,41,0.546,"[""monetary_policy"", ""risk_sentiment""]",2,0.7
+USDSGD,1,mistral-7b,5,0.2,48,0.638,"[""monetary_policy"", ""inflation"", ""risk_sentiment""]",3,0.65
+USDSGD,1,mistral-7b,6,0.2,44,0.564,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""market_technical""]",4,0.7
+USDSGD,1,mistral-7b,7,0.2,43,0.508,"[""monetary_policy"", ""inflation"", ""risk_sentiment""]",3,0.75
+USDSGD,1,mistral-7b,8,0.2,43,0.508,"[""monetary_policy"", ""risk_sentiment"", ""market_technical""]",3,0.75
+USDSGD,1,mistral-7b,9,0.2,45,0.52,"[""monetary_policy"", ""economic_growth""]",2,0.7
+USDSGD,1,mistral-7b,10,0.2,50,0.65,"[""monetary_policy"", ""inflation"", ""risk_sentiment""]",3,0.75
+USDSGD,1,mistral-7b,11,0.1,43,0.508,"[""monetary_policy"", ""risk_sentiment"", ""market_technical""]",3,0.7
+USDSGD,1,mistral-7b,12,0.2,49,0.644,"[""monetary_policy"", ""inflation"", ""risk_sentiment""]",3,0.7
+USDSGD,1,mistral-7b,13,0.2,43,0.558,"[""monetary_policy"", ""risk_sentiment""]",2,0.65
+USDSGD,1,mistral-7b,14,0.2,47,0.532,"[""monetary_policy"", ""risk_sentiment""]",2,0.65
+USDSGD,1,mistral-7b,15,0.2,46,0.526,"[""monetary_policy"", ""risk_sentiment"", ""market_technical""]",3,0.65
+USDSGD,1,mistral-7b,16,0.2,41,0.546,"[""monetary_policy"", ""risk_sentiment""]",2,0.65
+USDSGD,1,mistral-7b,17,0.2,41,0.546,"[""monetary_policy"", ""risk_sentiment""]",2,0.65
+USDSGD,1,mistral-7b,18,0.2,44,0.514,"[""monetary_policy"", ""risk_sentiment""]",2,0.7
+USDSGD,1,mistral-7b,19,0.2,40,0.54,"[""monetary_policy"", ""risk_sentiment""]",2,0.65

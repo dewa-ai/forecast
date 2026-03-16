@@ -1,0 +1,61 @@
+currency,horizon,model,window_idx,news_grounding_rate,explanation_len,coherence_score,factor_types,n_factors_cited,confidence_score
+USDIDR,10,llama3-8b,0,0.4444444444444444,60,0.7,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",4,0.5
+USDIDR,10,llama3-8b,1,0.5555555555555556,54,0.5,"[""monetary_policy"", ""risk_sentiment""]",2,0.5
+USDIDR,10,llama3-8b,2,0.5555555555555556,62,0.7,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",4,0.5
+USDIDR,10,llama3-8b,3,0.5555555555555556,48,0.688,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",4,0.5
+USDIDR,10,llama3-8b,4,0.4444444444444444,59,0.7,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",4,0.5
+USDIDR,10,llama3-8b,5,0.5555555555555556,62,0.7,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",4,0.5
+USDIDR,10,llama3-8b,6,0.5555555555555556,76,0.6,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",4,0.5
+USDIDR,10,llama3-8b,7,0.5555555555555556,54,0.5,"[""monetary_policy"", ""risk_sentiment""]",2,0.5
+USDIDR,10,llama3-8b,8,0.5555555555555556,54,0.5,"[""monetary_policy"", ""risk_sentiment""]",2,0.5
+USDIDR,10,llama3-8b,9,0.5555555555555556,54,0.5,"[""monetary_policy"", ""risk_sentiment""]",2,0.5
+USDIDR,10,llama3-8b,10,0.5555555555555556,65,0.7,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",4,0.5
+USDIDR,10,llama3-8b,11,0.5555555555555556,71,0.6,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",4,0.5
+USDIDR,10,llama3-8b,12,0.5555555555555556,54,0.5,"[""monetary_policy"", ""risk_sentiment""]",2,0.5
+USDIDR,10,llama3-8b,13,0.4444444444444444,56,0.65,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.5
+USDIDR,10,llama3-8b,14,0.5555555555555556,60,0.55,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.5
+USDIDR,10,llama3-8b,15,0.4444444444444444,56,0.65,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.5
+USDIDR,10,llama3-8b,16,0.4444444444444444,56,0.65,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.5
+USDIDR,10,llama3-8b,17,0.4444444444444444,62,0.6,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",4,0.5
+USDIDR,10,llama3-8b,18,0.4444444444444444,60,0.7,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",4,0.5
+USDIDR,10,llama3-8b,19,0.5555555555555556,63,0.7,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",4,0.5
+USDIDR,10,qwen2.5-7b,0,0.2222222222222222,42,0.502,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.7
+USDIDR,10,qwen2.5-7b,1,0.2222222222222222,43,0.508,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.7
+USDIDR,10,qwen2.5-7b,2,0.2222222222222222,44,0.614,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",4,0.7
+USDIDR,10,qwen2.5-7b,3,0.2222222222222222,43,0.558,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",4,0.7
+USDIDR,10,qwen2.5-7b,4,0.2222222222222222,46,0.526,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.7
+USDIDR,10,qwen2.5-7b,5,0.2222222222222222,43,0.508,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.7
+USDIDR,10,qwen2.5-7b,6,0.2222222222222222,38,0.578,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",4,0.7
+USDIDR,10,qwen2.5-7b,7,0.2222222222222222,38,0.528,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.7
+USDIDR,10,qwen2.5-7b,8,0.2222222222222222,39,0.534,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.7
+USDIDR,10,qwen2.5-7b,9,0.2222222222222222,38,0.528,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.7
+USDIDR,10,qwen2.5-7b,10,0.2222222222222222,41,0.496,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.7
+USDIDR,10,qwen2.5-7b,11,0.2222222222222222,35,0.46,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.7
+USDIDR,10,qwen2.5-7b,12,0.2222222222222222,38,0.578,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",4,0.7
+USDIDR,10,qwen2.5-7b,13,0.2222222222222222,35,0.46,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.7
+USDIDR,10,qwen2.5-7b,14,0.2222222222222222,41,0.496,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.7
+USDIDR,10,qwen2.5-7b,15,0.2222222222222222,37,0.472,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.7
+USDIDR,10,qwen2.5-7b,16,0.2222222222222222,38,0.578,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",4,0.7
+USDIDR,10,qwen2.5-7b,17,0.2222222222222222,35,0.46,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.7
+USDIDR,10,qwen2.5-7b,18,0.2222222222222222,31,0.486,"[""risk_sentiment"", ""economic_growth"", ""market_technical""]",3,0.7
+USDIDR,10,qwen2.5-7b,19,0.2222222222222222,39,0.634,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",4,0.7
+USDIDR,10,mistral-7b,0,0.2222222222222222,30,0.38,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",4,0.7
+USDIDR,10,mistral-7b,1,0.2222222222222222,35,0.51,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",4,0.7
+USDIDR,10,mistral-7b,2,0.2222222222222222,30,0.38,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",4,0.7
+USDIDR,10,mistral-7b,3,0.2222222222222222,35,0.51,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.7
+USDIDR,10,mistral-7b,4,0.2222222222222222,33,0.448,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.7
+USDIDR,10,mistral-7b,5,0.2222222222222222,33,0.448,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.7
+USDIDR,10,mistral-7b,6,0.2222222222222222,33,0.448,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.7
+USDIDR,10,mistral-7b,7,0.2222222222222222,30,0.43,"[""risk_sentiment"", ""economic_growth"", ""market_technical""]",3,0.7
+USDIDR,10,mistral-7b,8,0.2222222222222222,31,0.436,"[""trade_balance"", ""risk_sentiment"", ""economic_growth""]",3,0.7
+USDIDR,10,mistral-7b,9,0.2222222222222222,25,0.35,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",4,0.7
+USDIDR,10,mistral-7b,10,0.2222222222222222,28,0.418,"[""risk_sentiment"", ""economic_growth"", ""market_technical""]",3,0.7
+USDIDR,10,mistral-7b,11,0.2222222222222222,34,0.454,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.7
+USDIDR,10,mistral-7b,12,0.2222222222222222,34,0.454,"[""monetary_policy"", ""risk_sentiment"", ""market_technical""]",3,0.7
+USDIDR,10,mistral-7b,13,0.2222222222222222,30,0.43,"[""risk_sentiment"", ""economic_growth"", ""market_technical""]",3,0.7
+USDIDR,10,mistral-7b,14,0.2222222222222222,33,0.448,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.7
+USDIDR,10,mistral-7b,15,0.2222222222222222,33,0.448,"[""monetary_policy"", ""risk_sentiment"", ""market_technical""]",3,0.7
+USDIDR,10,mistral-7b,16,0.2222222222222222,32,0.442,"[""risk_sentiment"", ""economic_growth""]",2,0.7
+USDIDR,10,mistral-7b,17,0.2222222222222222,33,0.448,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.7
+USDIDR,10,mistral-7b,18,0.2222222222222222,21,0.276,"[""monetary_policy"", ""risk_sentiment"", ""economic_growth""]",3,0.7
+USDIDR,10,mistral-7b,19,0.2222222222222222,33,0.448,"[""monetary_policy"", ""risk_sentiment"", ""market_technical""]",3,0.7

@@ -1,5 +1,15 @@
 [
   {
+    "title": "Singapore Dollar Strengthens on Possible Position Adjustments Before U.S. Data",
+    "publisher": "The Wall Street Journal",
+    "link": "",
+    "published_at": "2026-03-06 02:33:00",
+    "type": "STORY",
+    "thumbnail": "https://s.yimg.com/uu/api/res/1.2/Fwf5HL4GsEGPbDfR3MJBPg--~B/aD02MzA7dz0xMjAwO2FwcGlkPXl0YWNoeW9u/https://media.zenfs.com/en/wsj.com/7b2c285183be07ca3c4e8242b25a59a8",
+    "related_tickers": [],
+    "summary": "The Singapore dollar strengthens against its U.S. counterpart in the Asian session on possible position adjustments."
+  },
+  {
     "title": "Dollar firm as investors mull a Fed under Warsh; yen back under the spotlight",
     "publisher": "Reuters",
     "link": "https://finance.yahoo.com/news/dollar-firm-investors-mull-fed-235642095.html",
@@ -88,15 +98,5 @@
     "thumbnail": "https://s.yimg.com/uu/api/res/1.2/QCBdrkQI94Qb42p.4cLbaw--~B/aD01MzQ7dz04MDA7YXBwaWQ9eXRhY2h5b24-/https://media.zenfs.com/en/reuters.com/c2e822f2e8f57bec134c5983ce19e3fe",
     "related_tickers": [],
     "summary": "By Gregor Stuart Hunter SINGAPORE (Reuters) -A relief rally swept across Asian markets and lifted stocks on Thursday as investors cheered Nvidia's market-topping earnings, while the dollar ticked up"
-  },
-  {
-    "title": "Singapore Central Bank Pilots Tokenized MAS Bills Using CBDC Settlement",
-    "publisher": "99bitcoins",
-    "link": "https://finance.yahoo.com/news/singapore-central-bank-pilots-tokenized-152244013.html",
-    "published_at": "2025-11-13 15:22:44",
-    "type": "STORY",
-    "thumbnail": "https://s.yimg.com/uu/api/res/1.2/5xcK0H5fjySWQvxPCrya.g--~B/aD0xMDI0O3c9MTAyNDthcHBpZD15dGFjaHlvbg--/https://media.zenfs.com/en/99bitcoins_us_315/172e043747a09508c7eacad6b0f50544",
-    "related_tickers": [],
-    "summary": "The Monetary Authority of Singapore (MAS) has decided to pilot a new type of government bond called: tokenized MAS bill. These will be settled using a digital version of the Singaporean dollar known as a CBDC (central bank digital currency). At the Singapore FinTech Festival on Thursday, 13 November 2025, ..."
   }
 ]

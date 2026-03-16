@@ -160,11 +160,14 @@ class AblationStudyRunner:
             "news_only":    {"news": True,  "prompt": "zero"},
             "prompt_only":  {"news": False, "prompt": "few"},
             "full_model":   {"news": True,  "prompt": "few"},
-            # Ablation TSFL — Time Series as Foreign Language (ChatTime-inspired)
-            "tsfl_word":    {"news": False, "prompt": "tsfl_word"},
-            "tsfl_patch":   {"news": False, "prompt": "tsfl_patch"},
-            "tsfl_signal":  {"news": False, "prompt": "tsfl_signal"},
-            "tsfl_patch_news": {"news": True, "prompt": "tsfl_patch"},
+            # Ablation TSFL -- Time Series as Foreign Language
+            # Following ChatTime (Wang et al., 2024): normalize to [-0.5,0.5],
+            # discretize to 10K bins, serialize as ###value### tokens.
+            # 2x2 factorial: news x few-shot
+            "tsfl_zero":     {"news": False, "prompt": "tsfl_zero"},
+            "tsfl_news":     {"news": True,  "prompt": "tsfl_news"},
+            "tsfl_few":      {"news": False, "prompt": "tsfl_few"},
+            "tsfl_few_news": {"news": True,  "prompt": "tsfl_few_news"},
         }
 
         self.results = {
@@ -221,7 +224,7 @@ class AblationStudyRunner:
                     m = ARIMAForecaster(order=(1, 1, 1))
                     m.fit(train); pred = m.predict(horizon=test_size)
                 elif model_name == "lstm":
-                    m = LSTMForecaster(seq_length=30, epochs=20, batch_size=32)
+                    m = LSTMForecaster(seq_length=30, epochs=50, batch_size=32)
                     m.fit(train); pred = m.predict(train, horizon=test_size)
                 elif model_name == "xgboost":
                     m = XGBoostForecaster(n_lags=30)
@@ -229,7 +232,7 @@ class AblationStudyRunner:
                 elif model_name == "itransformer":
                     m = iTransformerForecaster(
                         seq_len=30, pred_len=horizon,
-                        d_model=64, n_heads=4, n_layers=2, epochs=10)
+                        d_model=64, n_heads=4, n_layers=2, epochs=30)
                     m.fit(train); pred = m.predict(train, horizon=test_size)
 
                 if len(pred) > test_size:
@@ -285,70 +288,124 @@ class AblationStudyRunner:
         finally:
             stop_all_servers(procs)
 
+    def _build_prompt(self, config_name, config, context_data, news,
+                      currency, horizon, llm_model):
+        """Build prompt for a given config. Applies Qwen context reduction (Fix 5)."""
+        prompt_type = config["prompt"]
+
+        # Fix 5: Reduce context for Qwen to prevent "overthinking"
+        n_examples = 1 if llm_model == "qwen2.5-7b" else 3
+        max_news   = 5 if llm_model == "qwen2.5-7b" else 10
+
+        # --- TSFL: Time Series as Foreign Language (ChatTime, Wang et al. 2024) ---
+        # 2x2 factorial: tsfl_zero, tsfl_news, tsfl_few, tsfl_few_news
+        if prompt_type.startswith("tsfl_"):
+            tsfl_builder = TSFLPromptBuilder(currency_pair=currency, horizon=horizon)
+            use_news = config["news"]
+            use_few  = prompt_type in ("tsfl_few", "tsfl_few_news")
+            if use_few and use_news:
+                return tsfl_builder.build_few_shot_with_news(
+                    context_data, news, lookback_days=30,
+                    n_examples=n_examples, max_news=max_news)
+            elif use_few and not use_news:
+                return tsfl_builder.build_few_shot(
+                    context_data, lookback_days=30, n_examples=n_examples)
+            elif not use_few and use_news:
+                return tsfl_builder.build_with_news(
+                    context_data, news, lookback_days=30, max_news=max_news)
+            else:
+                return tsfl_builder.build_zero_shot(context_data, lookback_days=30)
+
+        # --- Standard LLM prompts ---
+        builder = PromptBuilder(currency_pair=currency, horizon=horizon)
+        if config["news"] and prompt_type == "few":
+            return builder.build_few_shot_with_news(
+                context_data, news, lookback_days=30,
+                n_examples=n_examples, max_news=max_news)
+        elif config["news"] and prompt_type == "zero":
+            return builder.build_news_augmented(
+                context_data, news, lookback_days=30, max_news=max_news)
+        elif not config["news"] and prompt_type == "few":
+            return builder.build_few_shot(
+                context_data, lookback_days=30, n_examples=n_examples)
+        else:
+            return builder.build_zero_shot(context_data, lookback_days=30)
+
     def _run_llm_single(self, currency, horizon, horizon_name,
                         data, news, llm_model, forecaster):
+        """
+        Rolling window evaluation (Fix 4).
+
+        Slides a 30-day context window across the test period (10 windows,
+        step=5 days) so metrics are averaged over multiple market regimes.
+        TSFL configs decode ###token### responses via TSFLTokenizer.decode().
+        """
         print(f"\n  [{currency}] {horizon_name} ({horizon}d)")
-        split_idx    = int(len(data) * 0.8)
-        train_data   = data[:split_idx]
-        test_data    = data[split_idx:]
-        test_size    = min(100, len(test_data))
-        test_subset  = test_data[-test_size:]
-        context_data = pd.concat([train_data.tail(500), test_subset])
-        results      = []
+
+        LOOKBACK  = 30
+        N_WINDOWS = 10
+        STEP      = 5
+
+        if len(data) < LOOKBACK + (horizon + STEP) * N_WINDOWS:
+            N_WINDOWS = 1
+            print(f"    [INFO] Short data — using single window")
+
+        results = []
 
         for config_name, config in self.ablation_configs.items():
             try:
-                prompt_type = config["prompt"]
+                all_y_true, all_y_pred = [], []
+                is_tsfl = config["prompt"].startswith("tsfl_")
 
-                # --- TSFL (Time Series as Foreign Language) prompts ---
-                if prompt_type.startswith("tsfl_"):
-                    strategy = prompt_type.replace("tsfl_", "")  # word / patch / signal
-                    if strategy == "patch_news":
-                        strategy = "patch"
-                    tsfl_builder = TSFLPromptBuilder(
-                        currency_pair=currency,
-                        horizon=horizon,
-                        strategy=strategy,
-                        patch_size=5,
-                    )
-                    if config["news"]:
-                        prompt = tsfl_builder.build_tsfl_with_news(
-                            context_data, news, lookback_days=30, max_news=5)
+                for w in range(N_WINDOWS):
+                    window_end   = len(data) - (N_WINDOWS - w) * STEP - horizon
+                    if window_end < LOOKBACK:
+                        continue
+                    context_data = data.iloc[max(0, window_end - 500):window_end]
+                    y_true_arr   = data["close"].values[window_end:window_end + horizon]
+                    if len(y_true_arr) < horizon:
+                        continue
+
+                    last_price = context_data["close"].iloc[-1]
+                    prompt     = self._build_prompt(
+                        config_name, config, context_data, news,
+                        currency, horizon, llm_model)
+
+                    if is_tsfl:
+                        # TSFL: LLM outputs ###tokens### — use TSFLTokenizer to decode
+                        tsfl_builder = TSFLPromptBuilder(currency_pair=currency, horizon=horizon)
+                        raw_response = forecaster.api.call(prompt, model=llm_model, is_tsfl=True)
+                        ref_prices   = context_data["close"].values[-LOOKBACK:]
+                        pred         = tsfl_builder.decode_response(
+                            raw_response, ref_prices, horizon)
                     else:
-                        prompt = tsfl_builder.build_tsfl_zero_shot(
-                            context_data, lookback_days=30)
+                        # Standard: LLM outputs JSON {"predictions": [...]}
+                        pred = forecaster.predict(
+                            prompt, model=llm_model, expected_scale=last_price)
+                        pred = pred[:horizon] if len(pred) >= horizon else np.tile(pred, (horizon // len(pred)) + 1)[:horizon]
+                        
+                    # Fix 6: warn if flat predictions
+                    if np.std(pred) < np.std(y_true_arr) * 0.001:
+                        print(f"    [WARN] Flat predictions w={w} ({config_name})")
 
-                # --- Standard LLM prompts ---
-                else:
-                    builder = PromptBuilder(currency_pair=currency, horizon=horizon)
-                    if config["news"] and prompt_type == "few":
-                        prompt = builder.build_few_shot_with_news(
-                            context_data, news, lookback_days=30, n_examples=3)
-                    elif config["news"] and prompt_type == "zero":
-                        prompt = builder.build_news_augmented(
-                            context_data, news, lookback_days=30)
-                    elif not config["news"] and prompt_type == "few":
-                        prompt = builder.build_few_shot(
-                            context_data, lookback_days=30, n_examples=3)
-                    else:
-                        prompt = builder.build_zero_shot(context_data, lookback_days=30)
+                    all_y_true.extend(y_true_arr)
+                    all_y_pred.extend(pred)
 
-                pred_raw = forecaster.predict(prompt, model=llm_model)
-                if len(pred_raw) < test_size:
-                    pred = np.tile(pred_raw, (test_size // len(pred_raw)) + 1)[:test_size]
-                else:
-                    pred = pred_raw[:test_size]
+                if not all_y_true:
+                    raise ValueError("No valid windows")
 
-                y_true  = test_subset["close"].values[:test_size]
-                metrics = calculate_all_metrics(y_true, pred)
+                metrics = calculate_all_metrics(
+                    np.array(all_y_true), np.array(all_y_pred))
                 results.append({
                     "currency": currency, "horizon": horizon,
-                    "model": llm_model,   "config":  config_name,
-                    "news":  config["news"], "prompt": config["prompt"],
-                    "rmse": float(metrics["rmse"]), "mae": float(metrics["mae"]),
-                    "mape": float(metrics["mape"]), "da":  float(metrics["da"]),
+                    "model":    llm_model, "config": config_name,
+                    "news":     config["news"], "prompt": config["prompt"],
+                    "rmse": float(metrics["rmse"]), "mae":  float(metrics["mae"]),
+                    "mape": float(metrics["mape"]), "da":   float(metrics["da"]),
+                    "n_windows": N_WINDOWS,
                 })
-                print(f"    {config_name}: RMSE={metrics['rmse']:.4f} DA={metrics['da']:.2f}%")
+                print(f"    {config_name}: RMSE={metrics['rmse']:.4f} "
+                      f"DA={metrics['da']:.2f}% (n={N_WINDOWS})")
             except Exception as e:
                 print(f"    {config_name} ERROR: {e}")
         return results

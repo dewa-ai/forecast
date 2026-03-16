@@ -6,16 +6,10 @@ Supports:
 - vLLM (GPU - Primary, FAST)
 - Ollama (CPU/GPU - Backup, FREE)
 
-Example:
-    from llm_api_helper import LLMForecaster
-    
-    # Primary: vLLM (fastest)
-    forecaster = LLMForecaster(backend='vllm')
-    predictions = forecaster.predict(prompt, model='llama3-8b')
-    
-    # Backup: Ollama (if vLLM fails)
-    forecaster = LLMForecaster(backend='ollama')
-    predictions = forecaster.predict(prompt, model='llama3-8b')
+Fixes applied:
+  1. System prompt for zero-shot to prevent Mistral MAPE anomaly
+  2. parse_predictions with expected_scale filter to reject out-of-range values
+  3. predict() accepts expected_scale kwarg and passes it to parser
 """
 
 import json
@@ -27,17 +21,26 @@ from typing import Optional
 
 class BaseAPI:
     """Base class for LLM API integrations."""
-    
+
     def call(self, prompt: str, model: str, **kwargs) -> str:
-        """Call LLM API and return response."""
         raise NotImplementedError
-    
-    def parse_predictions(self, response: str) -> np.ndarray:
+
+    def parse_predictions(self, response: str,
+                          expected_scale: Optional[float] = None) -> np.ndarray:
         """
         Parse LLM response to extract numerical predictions.
-        Handles full JSON, partial JSON (prompt ends with '['), raw arrays, fallback.
+
+        Args:
+            response: Raw text response from LLM
+            expected_scale: Last known price — used to filter out-of-range values.
+                            Predictions outside [scale*0.5, scale*2.0] are dropped.
+
+        Returns:
+            Array of predicted values
         """
         text = response.strip()
+
+        predictions = None
 
         # Case 1: prompt ended with {"predictions": [ so LLM continues with just numbers
         partial = re.match(r"^[\d\s.,]+", text)
@@ -45,105 +48,128 @@ class BaseAPI:
             nums = re.findall(r"[\d]+\.?[\d]*", partial.group())
             if nums:
                 try:
-                    return np.array([float(x) for x in nums])
+                    predictions = np.array([float(x) for x in nums])
                 except Exception:
                     pass
 
         # Case 2: full JSON {"predictions": [...]}
-        try:
-            json_match = re.search(r"\{[^{}]*predictions[^{}]*\}", text, re.DOTALL)
-            if json_match:
-                data = json.loads(json_match.group())
-                return np.array(data["predictions"])
-        except Exception:
-            pass
-
-        # Case 3: find any array of numbers
-        try:
-            array_match = re.search(r"\[([\d.,\s]+)\]", text)
-            if array_match:
-                nums = [float(x.strip()) for x in array_match.group(1).split(",") if x.strip()]
-                if nums:
-                    return np.array(nums)
-        except Exception:
-            pass
-
-        # Case 4: extract all decimal numbers from response
-        all_nums = re.findall(r"\b\d+\.\d+\b", text)
-        if all_nums:
+        if predictions is None:
             try:
-                return np.array([float(x) for x in all_nums[:20]])
+                json_match = re.search(r"\{[^{}]*predictions[^{}]*\}", text, re.DOTALL)
+                if json_match:
+                    data = json.loads(json_match.group())
+                    predictions = np.array(data["predictions"])
             except Exception:
                 pass
 
-        raise ValueError("Could not parse predictions from response")
+        # Case 3: find any array of numbers
+        if predictions is None:
+            try:
+                array_match = re.search(r"\[([\d.,\s]+)\]", text)
+                if array_match:
+                    nums = [float(x.strip()) for x in array_match.group(1).split(",")
+                            if x.strip()]
+                    if nums:
+                        predictions = np.array(nums)
+            except Exception:
+                pass
+
+        # Case 4: extract all decimal numbers from response
+        if predictions is None:
+            all_nums = re.findall(r"\b\d+\.\d+\b", text)
+            if all_nums:
+                try:
+                    predictions = np.array([float(x) for x in all_nums[:20]])
+                except Exception:
+                    pass
+
+        if predictions is None:
+            raise ValueError("Could not parse predictions from response")
+
+        # Fix 2: filter by expected_scale to reject garbage values
+        if expected_scale is not None and expected_scale > 0:
+            lo, hi = expected_scale * 0.5, expected_scale * 2.0
+            filtered = predictions[(predictions >= lo) & (predictions <= hi)]
+            if len(filtered) >= max(1, len(predictions) // 2):
+                predictions = filtered
+            else:
+                print(f"[WARN] Scale filter removed too many values "
+                      f"(expected ~{expected_scale:.2f}). Keeping original.")
+
+        return predictions
 
 
 class vLLMAPI(BaseAPI):
     """
     vLLM API integration - PRIMARY (GPU, FASTEST).
-    
-    FREE - Runs on your L40S GPU.
-    Start servers with: bash scripts/start_vllm_servers.sh
 
-    NOTE: Uses ports 18000-18002 (not 8000-8002) to avoid conflicts
-    with other users on shared lab GPUs.
+    Uses ports 18000-18002 to avoid conflicts with other lab users.
     """
-    
+
     def __init__(self):
-        """Initialize with multi-model endpoints."""
-        # Using 18000-18002 to avoid port conflicts with other lab users
         self.endpoints = {
-            'llama3-8b': 'http://localhost:18000',
+            'llama3-8b':  'http://localhost:18000',
             'qwen2.5-7b': 'http://localhost:18001',
-            'mistral-7b': 'http://localhost:18002'
+            'mistral-7b': 'http://localhost:18002',
+        }
+        self.model_ids = {
+            'llama3-8b':  'meta-llama/Meta-Llama-3-8B-Instruct',
+            'qwen2.5-7b': 'Qwen/Qwen2.5-7B-Instruct',
+            'mistral-7b': 'mistralai/Mistral-7B-Instruct-v0.3',
         }
 
-        # Model ID yang digunakan saat serve vLLM
-        self.model_ids = {
-            'llama3-8b': 'meta-llama/Meta-Llama-3-8B-Instruct',
-            'qwen2.5-7b': 'Qwen/Qwen2.5-7B-Instruct',
-            'mistral-7b': 'mistralai/Mistral-7B-Instruct-v0.3'
-        }
-    
     def call(self, prompt: str, model: str = 'llama3-8b',
-             temperature: float = 0.1, max_tokens: int = 1000) -> str:
+             temperature: float = 0.1, max_tokens: int = 1000,
+             use_system_prompt: bool = True, **kwargs) -> str:
         """
         Call vLLM API (OpenAI-compatible chat completions).
-        
+
         Args:
             prompt: Input prompt
-            model: Model name (llama3-8b, qwen2.5-7b, mistral-7b)
+            model: Model name
             temperature: Sampling temperature
-            max_tokens: Maximum tokens
-            
-        Returns:
-            Model response text
+            max_tokens: Maximum output tokens
+            use_system_prompt: If True, prepend a JSON-only system message.
+                               Helps prevent Mistral/LLaMA from outputting prose
+                               instead of JSON (root cause of MAPE=7876 anomaly).
         """
         base_url = self.endpoints.get(model)
         if not base_url:
-            raise ValueError(f"Unknown model: {model}. Available: {list(self.endpoints.keys())}")
+            raise ValueError(f"Unknown model: {model}. "
+                             f"Available: {list(self.endpoints.keys())}")
 
         model_id = self.model_ids.get(model)
-
         url = f"{base_url}/v1/chat/completions"
-        
+
+        # Fix 1: system prompt forces JSON-only output
+        messages = []
+        if use_system_prompt:
+            messages.append({
+                "role": "system",
+                "content": (
+                    "You are a JSON-only financial forecasting assistant. "
+                    "You must output ONLY a valid JSON object with a 'predictions' key "
+                    "containing a list of numbers. "
+                    "Do NOT output any explanation, reasoning, markdown, or code blocks. "
+                    "Start your response with { and end with }."
+                )
+            })
+        messages.append({"role": "user", "content": prompt})
+
         data = {
             "model": model_id,
-            "messages": [
-                {"role": "user", "content": prompt}
-            ],
+            "messages": messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
-            "stop": ["\n\n\n", "###", "Example"]
+            "stop": [] if kwargs.pop("is_tsfl", False) else ["\n\n\n", "###", "Example"],
         }
-        
+
         try:
             response = requests.post(url, json=data, timeout=120)
             response.raise_for_status()
             result = response.json()
             return result['choices'][0]['message']['content']
-        
+
         except requests.exceptions.ConnectionError:
             raise ConnectionError(
                 f"Could not connect to {model} at {base_url}. "
@@ -156,192 +182,103 @@ class vLLMAPI(BaseAPI):
 
 
 class OllamaAPI(BaseAPI):
-    """
-    Ollama API integration - BACKUP (FREE).
-    
-    FREE - Runs locally on your server.
-    Install: curl -fsSL https://ollama.com/install.sh | sh
-    Start: ollama serve
-    Pull models: ollama pull llama3
-    """
-    
+    """Ollama API integration - BACKUP (FREE)."""
+
     def __init__(self, base_url: str = "http://localhost:11434"):
-        """
-        Args:
-            base_url: Ollama server URL
-        """
         self.base_url = base_url
-        
-        # Model mappings
         self.models = {
-            'llama3-8b': 'llama3',
+            'llama3-8b':  'llama3',
             'qwen2.5-7b': 'qwen2.5:7b',
-            'mistral-7b': 'mistral'
+            'mistral-7b': 'mistral',
         }
-    
+
     def call(self, prompt: str, model: str = 'llama3-8b',
-             temperature: float = 0.1) -> str:
-        """
-        Call Ollama API.
-        
-        Args:
-            prompt: Input prompt
-            model: Model name
-            temperature: Sampling temperature
-            
-        Returns:
-            Model response text
-        """
+             temperature: float = 0.1, **kwargs) -> str:
         model_id = self.models.get(model, model)
-        
         url = f"{self.base_url}/api/generate"
-        
+
+        # Prepend system instruction inline (Ollama doesn't have system role)
+        full_prompt = (
+            "You are a JSON-only financial forecasting assistant. "
+            "Output ONLY a valid JSON object like {\"predictions\": [v1, v2, ...]}. "
+            "No explanation, no markdown.\n\n"
+            + prompt
+        )
+
         data = {
             "model": model_id,
-            "prompt": prompt,
+            "prompt": full_prompt,
             "temperature": temperature,
-            "stream": False
+            "stream": False,
         }
-        
+
         try:
             response = requests.post(url, json=data, timeout=180)
             response.raise_for_status()
-            result = response.json()
-            return result['response']
-        
+            return response.json()['response']
         except requests.exceptions.ConnectionError:
             raise ConnectionError(
                 f"Could not connect to Ollama at {self.base_url}. "
-                f"Install: curl -fsSL https://ollama.com/install.sh | sh"
+                "Install: curl -fsSL https://ollama.com/install.sh | sh"
             )
         except Exception as e:
             raise RuntimeError(f"Ollama error: {str(e)}")
 
 
 class LLMForecaster:
-    """
-    Unified LLM forecaster with FREE backends only.
-    
-    Supports:
-    - vLLM (GPU - primary, fastest)
-    - Ollama (CPU/GPU - backup, slower but reliable)
-    
-    Both are 100% FREE!
-    """
-    
+    """Unified LLM forecaster supporting vLLM and Ollama backends."""
+
     def __init__(self, backend: str = 'vllm', base_url: Optional[str] = None):
-        """
-        Args:
-            backend: API backend ('vllm' or 'ollama')
-            base_url: Base URL for Ollama (default: http://localhost:11434)
-        """
         self.backend = backend
-        
         if backend == 'vllm':
             self.api = vLLMAPI()
-        
         elif backend == 'ollama':
-            base_url = base_url or "http://localhost:11434"
-            self.api = OllamaAPI(base_url)
-        
+            self.api = OllamaAPI(base_url or "http://localhost:11434")
         else:
             raise ValueError(
                 f"Unknown backend: {backend}. "
-                f"Available FREE backends: 'vllm', 'ollama'"
+                "Available: 'vllm', 'ollama'"
             )
-    
-    def predict(self, prompt: str, model: str = 'llama3-8b', **kwargs) -> np.ndarray:
+
+    def predict(self, prompt: str, model: str = 'llama3-8b',
+                expected_scale: Optional[float] = None, **kwargs) -> np.ndarray:
         """
         Generate predictions using LLM.
-        
+
         Args:
-            prompt: Formatted prompt
-            model: Model name (llama3-8b, qwen2.5-7b, mistral-7b)
-            **kwargs: Additional API parameters
-            
+            prompt: Formatted prompt string
+            model: LLM model name
+            expected_scale: Last known price for scale-filtering parsed values.
+                            Pass context_data['close'].iloc[-1] from the caller.
+            **kwargs: Passed to the backend API call (e.g. temperature, max_tokens)
+
         Returns:
             Array of predicted values
         """
         print(f"[{self.backend}/{model}] Calling LLM...")
-        
         response = self.api.call(prompt, model=model, **kwargs)
-        predictions = self.api.parse_predictions(response)
-        
-        print(f"✓ Received {len(predictions)} predictions")
-        
+        predictions = self.api.parse_predictions(response,
+                                                 expected_scale=expected_scale)
+        print(f"  Received {len(predictions)} predictions")
         return predictions
 
 
-# Helper function for automatic fallback
 def create_forecaster_with_fallback() -> LLMForecaster:
-    """
-    Create forecaster with automatic fallback.
-    
-    Tries vLLM first, falls back to Ollama if vLLM is unavailable.
-    
-    Returns:
-        LLMForecaster instance
-    """
+    """Try vLLM first, fall back to Ollama."""
     try:
-        forecaster = LLMForecaster(backend='vllm')
         requests.get('http://localhost:18000/v1/models', timeout=2)
-        print("✓ Using vLLM (GPU - fastest)")
-        return forecaster
-    except:
+        print("Using vLLM (GPU - fastest)")
+        return LLMForecaster(backend='vllm')
+    except Exception:
         pass
-    
     try:
-        forecaster = LLMForecaster(backend='ollama')
         requests.get('http://localhost:11434', timeout=2)
-        print("⚠ vLLM unavailable, using Ollama (slower)")
-        return forecaster
-    except:
+        print("vLLM unavailable, using Ollama (slower)")
+        return LLMForecaster(backend='ollama')
+    except Exception:
         pass
-    
     raise RuntimeError(
         "No LLM backends available!\n"
         "Start vLLM: bash scripts/start_vllm_servers.sh\n"
         "OR install Ollama: curl -fsSL https://ollama.com/install.sh | sh"
     )
-
-
-# Example usage
-if __name__ == "__main__":
-    prompt = """You are a financial analyst.
-Predict USD/IDR for next 5 days:
-
-2024-01-15: 15420.50
-2024-01-16: 15435.20
-2024-01-17: 15448.75
-
-Output ONLY: {"predictions": [day1, day2, day3, day4, day5]}"""
-    
-    print("="*60)
-    print("Testing FREE LLM Backends")
-    print("="*60)
-    
-    # Test vLLM
-    print("\n[1] Testing vLLM (primary - fastest)")
-    try:
-        forecaster = LLMForecaster(backend='vllm')
-        predictions = forecaster.predict(prompt, model='llama3-8b')
-        print(f"Predictions: {predictions}")
-        print("✓ vLLM works!")
-    except Exception as e:
-        print(f"✗ vLLM error: {e}")
-    
-    # Test Ollama
-    print("\n[2] Testing Ollama (backup - free)")
-    try:
-        forecaster = LLMForecaster(backend='ollama')
-        predictions = forecaster.predict(prompt, model='llama3-8b')
-        print(f"Predictions: {predictions}")
-        print("✓ Ollama works!")
-    except Exception as e:
-        print(f"✗ Ollama error: {e}")
-    
-    print("\n" + "="*60)
-    print("Setup:")
-    print("  vLLM: bash scripts/start_vllm_servers.sh")
-    print("  Ollama: curl -fsSL https://ollama.com/install.sh | sh")
-    print("="*60)

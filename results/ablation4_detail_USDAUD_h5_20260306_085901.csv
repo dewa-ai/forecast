@@ -1,0 +1,61 @@
+currency,horizon,model,window_idx,news_grounding_rate,explanation_len,coherence_score,factor_types,n_factors_cited,confidence_score
+USDAUD,5,llama3-8b,0,0.5,47,0.682,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",5,0.5
+USDAUD,5,llama3-8b,1,0.5,47,0.682,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",5,0.5
+USDAUD,5,llama3-8b,2,0.5,51,0.7,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",5,0.5
+USDAUD,5,llama3-8b,3,0.5,49,0.694,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",5,0.5
+USDAUD,5,llama3-8b,4,0.5,49,0.694,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",5,0.5
+USDAUD,5,llama3-8b,5,0.5,47,0.682,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",5,0.5
+USDAUD,5,llama3-8b,6,0.5,47,0.682,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",5,0.5
+USDAUD,5,llama3-8b,7,0.5,49,0.694,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",5,0.5
+USDAUD,5,llama3-8b,8,0.5,49,0.694,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",5,0.5
+USDAUD,5,llama3-8b,9,0.5,47,0.682,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",5,0.5
+USDAUD,5,llama3-8b,10,0.5,49,0.694,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",5,0.5
+USDAUD,5,llama3-8b,11,0.5,49,0.694,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",5,0.5
+USDAUD,5,llama3-8b,12,0.5,49,0.694,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",5,0.5
+USDAUD,5,llama3-8b,13,0.2,31,0.436,"[""inflation"", ""risk_sentiment"", ""market_technical""]",3,0.7
+USDAUD,5,llama3-8b,14,0.5,47,0.682,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",5,0.5
+USDAUD,5,llama3-8b,15,0.5,49,0.694,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",5,0.5
+USDAUD,5,llama3-8b,16,0.5,47,0.682,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",5,0.5
+USDAUD,5,llama3-8b,17,0.5,49,0.694,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",5,0.5
+USDAUD,5,llama3-8b,18,0.5,49,0.694,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",5,0.5
+USDAUD,5,llama3-8b,19,0.5,49,0.694,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",5,0.5
+USDAUD,5,qwen2.5-7b,0,0.2,40,0.74,"[""inflation"", ""risk_sentiment"", ""market_technical"", ""commodity""]",4,0.7
+USDAUD,5,qwen2.5-7b,1,0.2,40,0.74,"[""inflation"", ""risk_sentiment"", ""market_technical"", ""commodity""]",4,0.7
+USDAUD,5,qwen2.5-7b,2,0.2,48,0.638,"[""inflation"", ""risk_sentiment"", ""market_technical""]",3,0.7
+USDAUD,5,qwen2.5-7b,3,0.2,41,0.746,"[""inflation"", ""risk_sentiment"", ""market_technical"", ""commodity""]",4,0.7
+USDAUD,5,qwen2.5-7b,4,0.2,49,0.794,"[""inflation"", ""risk_sentiment"", ""market_technical""]",3,0.7
+USDAUD,5,qwen2.5-7b,5,0.2,49,0.794,"[""inflation"", ""risk_sentiment"", ""market_technical""]",3,0.7
+USDAUD,5,qwen2.5-7b,6,0.2,41,0.746,"[""inflation"", ""risk_sentiment"", ""market_technical"", ""commodity""]",4,0.7
+USDAUD,5,qwen2.5-7b,7,0.2,42,0.752,"[""inflation"", ""risk_sentiment"", ""market_technical"", ""commodity""]",4,0.7
+USDAUD,5,qwen2.5-7b,8,0.2,42,0.752,"[""inflation"", ""risk_sentiment"", ""market_technical"", ""commodity""]",4,0.7
+USDAUD,5,qwen2.5-7b,9,0.2,41,0.746,"[""inflation"", ""risk_sentiment"", ""market_technical"", ""commodity""]",4,0.7
+USDAUD,5,qwen2.5-7b,10,0.2,39,0.634,"[""inflation"", ""risk_sentiment"", ""commodity""]",3,0.7
+USDAUD,5,qwen2.5-7b,11,0.2,48,0.788,"[""inflation"", ""risk_sentiment"", ""market_technical""]",3,0.7
+USDAUD,5,qwen2.5-7b,12,0.2,49,0.794,"[""inflation"", ""risk_sentiment"", ""market_technical""]",3,0.7
+USDAUD,5,qwen2.5-7b,13,0.2,47,0.782,"[""inflation"", ""risk_sentiment"", ""market_technical"", ""commodity""]",4,0.7
+USDAUD,5,qwen2.5-7b,14,0.2,40,0.69,"[""inflation"", ""risk_sentiment"", ""market_technical""]",3,0.7
+USDAUD,5,qwen2.5-7b,15,0.2,39,0.734,"[""inflation"", ""risk_sentiment"", ""market_technical"", ""commodity""]",4,0.7
+USDAUD,5,qwen2.5-7b,16,0.2,50,0.75,"[""inflation"", ""risk_sentiment"", ""market_technical""]",3,0.75
+USDAUD,5,qwen2.5-7b,17,0.2,50,0.75,"[""inflation"", ""risk_sentiment"", ""market_technical""]",3,0.7
+USDAUD,5,qwen2.5-7b,18,0.2,49,0.794,"[""inflation"", ""risk_sentiment"", ""market_technical""]",3,0.7
+USDAUD,5,qwen2.5-7b,19,0.2,47,0.682,"[""inflation"", ""market_technical"", ""commodity""]",3,0.7
+USDAUD,5,mistral-7b,0,0.1,36,0.616,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""market_technical""]",4,0.7
+USDAUD,5,mistral-7b,1,0.1,38,0.628,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""market_technical"", ""commodity""]",5,0.7
+USDAUD,5,mistral-7b,2,0.2,39,0.534,"[""inflation"", ""risk_sentiment"", ""market_technical"", ""commodity""]",4,0.7
+USDAUD,5,mistral-7b,3,0.1,34,0.504,"[""inflation"", ""risk_sentiment"", ""market_technical""]",3,0.7
+USDAUD,5,mistral-7b,4,0.1,36,0.616,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""market_technical""]",4,0.7
+USDAUD,5,mistral-7b,5,0.2,34,0.554,"[""inflation"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",4,0.7
+USDAUD,5,mistral-7b,6,0.1,37,0.572,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""market_technical""]",4,0.7
+USDAUD,5,mistral-7b,7,0.1,32,0.442,"[""monetary_policy"", ""inflation"", ""market_technical""]",3,0.7
+USDAUD,5,mistral-7b,8,0.2,44,0.464,"[""inflation"", ""market_technical""]",2,0.7
+USDAUD,5,mistral-7b,9,0.2,31,0.486,"[""inflation"", ""risk_sentiment"", ""market_technical"", ""commodity""]",4,0.7
+USDAUD,5,mistral-7b,10,0.1,37,0.572,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""market_technical""]",4,0.7
+USDAUD,5,mistral-7b,11,0.1,32,0.442,"[""monetary_policy"", ""inflation"", ""market_technical""]",3,0.7
+USDAUD,5,mistral-7b,12,0.1,36,0.516,"[""monetary_policy"", ""trade_balance"", ""inflation"", ""market_technical""]",4,0.7
+USDAUD,5,mistral-7b,13,0.2,27,0.412,"[""inflation"", ""risk_sentiment"", ""market_technical""]",3,0.7
+USDAUD,5,mistral-7b,14,0.1,36,0.616,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""market_technical""]",4,0.7
+USDAUD,5,mistral-7b,15,0.1,30,0.58,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""economic_growth"", ""market_technical""]",5,0.7
+USDAUD,5,mistral-7b,16,0.1,38,0.578,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""market_technical"", ""commodity""]",5,0.7
+USDAUD,5,mistral-7b,17,0.1,37,0.572,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""market_technical""]",4,0.7
+USDAUD,5,mistral-7b,18,0.1,37,0.572,"[""monetary_policy"", ""inflation"", ""risk_sentiment"", ""market_technical"", ""commodity""]",5,0.7
+USDAUD,5,mistral-7b,19,0.2,36,0.416,"[""inflation"", ""commodity""]",2,0.7

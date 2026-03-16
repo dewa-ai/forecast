@@ -56,33 +56,31 @@ def mape(y_true: np.ndarray, y_pred: np.ndarray) -> float:
 def directional_accuracy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     """
     Directional Accuracy (DA).
-    
+
     Measures percentage of correct directional predictions (up/down).
     Critical for trading applications.
     Higher is better. Range: [0, 100]
-    
-    Args:
-        y_true: Actual values (must have at least 2 values)
-        y_pred: Predicted values
-    
-    Returns:
-        Percentage of correct directional predictions
+
+    Fix 6: If predictions are flat (all same value), DA is explicitly 0.0
+    rather than NaN — making it clear the model failed to predict direction.
     """
     if len(y_true) < 2:
         return np.nan
-    
-    # Calculate direction: positive if price goes up, negative if down
-    actual_direction = np.sign(np.diff(y_true))
+
+    # Fix 6: flat predictions → DA = 0 (not NaN)
+    if np.std(y_pred) == 0:
+        return 0.0
+
+    actual_direction    = np.sign(np.diff(y_true))
     predicted_direction = np.sign(np.diff(y_pred))
-    
-    # Count correct predictions (ignore cases where direction is 0)
+
     mask = actual_direction != 0
     if not np.any(mask):
         return np.nan
-    
+
     correct = np.sum(actual_direction[mask] == predicted_direction[mask])
-    total = np.sum(mask)
-    
+    total   = np.sum(mask)
+
     return (correct / total) * 100
 
 

@@ -1,5 +1,45 @@
 [
   {
+    "title": "BC-US-Foreign Exchange",
+    "publisher": "Associated Press Finance",
+    "link": "https://finance.yahoo.com/news/bc-us-foreign-exchange-150025271.html",
+    "published_at": "2026-03-05 15:00:25",
+    "type": "STORY",
+    "thumbnail": "",
+    "related_tickers": [],
+    "summary": "Foreign Exchange, New York prices."
+  },
+  {
+    "title": "MUFG Sees Canadian Dollar Underperforming as Estimates Energy Price Spike Reversal",
+    "publisher": "MT Newswires",
+    "link": "https://finance.yahoo.com/news/mufg-sees-canadian-dollar-underperforming-154132636.html",
+    "published_at": "2026-03-03 15:41:32",
+    "type": "STORY",
+    "thumbnail": "",
+    "related_tickers": [],
+    "summary": "In February, the Canadian dollar (CAD or loonie) weakened against the US dollar (USD) in terms of Lo"
+  },
+  {
+    "title": "Further Strength for the Australian Dollar After Higher Inflation",
+    "publisher": "FX Empire",
+    "link": "https://finance.yahoo.com/news/further-strength-australian-dollar-higher-134255519.html",
+    "published_at": "2026-03-03 13:42:55",
+    "type": "STORY",
+    "thumbnail": "https://s.yimg.com/uu/api/res/1.2/NdWSWb7YhL_tfncibgc45Q--~B/aD00MTA7dz02MTU7YXBwaWQ9eXRhY2h5b24-/https://media.zenfs.com/en/fx_empire_176/50052bb63f50cb7b76bfe8bf2eeb5beb",
+    "related_tickers": [],
+    "summary": "The Aussie dollar remains close to three-year highs against its American counterpart after inflation rose unexpectedly."
+  },
+  {
+    "title": "MUFG Says Canadian Dollar Among Currencies Holding Up Better Than US Dollar Amid Middle East Conflict",
+    "publisher": "MT Newswires",
+    "link": "https://finance.yahoo.com/news/mufg-says-canadian-dollar-among-114554411.html",
+    "published_at": "2026-03-03 11:45:54",
+    "type": "STORY",
+    "thumbnail": "",
+    "related_tickers": [],
+    "summary": "The G10 commodity currencies of the Canadian dollar (CAD or loonie) and Australian dollar (AUD) are"
+  },
+  {
     "title": "U.S. Dollar Rallies as Investors Seek Safety",
     "publisher": "The Wall Street Journal",
     "link": "",
@@ -30,16 +70,6 @@
     "summary": "By Alun John LONDON, March 1 (Reuters) - The safe-haven Swiss franc and Japanese yen firmed, while the euro slid as trading resumed after a weekend that saw the United States and Israel launch their"
   },
   {
-    "title": "BC-US-Foreign Exchange",
-    "publisher": "Associated Press Finance",
-    "link": "https://finance.yahoo.com/news/bc-us-foreign-exchange-150025315.html",
-    "published_at": "2026-02-27 15:00:25",
-    "type": "STORY",
-    "thumbnail": "",
-    "related_tickers": [],
-    "summary": "Foreign Exchange, New York prices."
-  },
-  {
     "title": "Aussie jumps, yen slumps as rates play dominates in February",
     "publisher": "Reuters",
     "link": "https://finance.yahoo.com/news/aussie-jumps-yen-slumps-rates-023207473.html",
@@ -68,35 +98,5 @@
     "thumbnail": "https://s.yimg.com/uu/api/res/1.2/UbkwI483H82BFmFiuZdVHw--~B/aD01MzM7dz04MDA7YXBwaWQ9eXRhY2h5b24-/https://media.zenfs.com/en/reuters.com/a598a5ed5bac08e4ba2cc04d687ed595",
     "related_tickers": [],
     "summary": "By Tom Westbrook SINGAPORE, Feb 25 (Reuters) - A wobbly yen was pinned near a two-week low on Wednesday after a report that Prime Minister Sanae Takaichi had told the central bank chief she had"
-  },
-  {
-    "title": "Citigroup's hedge fund clients sold the dollar around Supreme Court tariff ruling",
-    "publisher": "Reuters",
-    "link": "https://finance.yahoo.com/news/citigroups-hedge-fund-clients-sold-120352555.html",
-    "published_at": "2026-02-24 12:03:52",
-    "type": "STORY",
-    "thumbnail": "https://s.yimg.com/uu/api/res/1.2/aoOYUHc78NaNqTwbaw1Ltw--~B/aD01MTE7dz04MDA7YXBwaWQ9eXRhY2h5b24-/https://media.zenfs.com/en/reuters.com/4f30af4fa0d7595866a2e8dc3e605767",
-    "related_tickers": [],
-    "summary": "LONDON, Feb 24 () - Citigroup's hedge fund clients sold the dollar around Friday's U. ‌Supreme Court ruling on President Donald ‌Trump's sweeping tariffs, according to a note from the U."
-  },
-  {
-    "title": "SocGen's Overnight Economic News Summay",
-    "publisher": "MT Newswires",
-    "link": "https://finance.yahoo.com/news/socgen-apos-overnight-economic-news-104808132.html",
-    "published_at": "2026-02-23 10:48:08",
-    "type": "STORY",
-    "thumbnail": "",
-    "related_tickers": [],
-    "summary": "Societe Generale in its early Monday economic news summary pointed out: -- The US dollar (USD) li"
-  },
-  {
-    "title": "Gold price hits three-week high on fresh Trump tariff jitters",
-    "publisher": "Yahoo Finance UK",
-    "link": "https://finance.yahoo.com/news/gold-prices-oil-pound-commodities-dollar-trump-tariff-092959780.html",
-    "published_at": "2026-02-23 09:29:59",
-    "type": "STORY",
-    "thumbnail": "https://s.yimg.com/uu/api/res/1.2/xwduHbvou.TvtoIPzkmfrA--~B/aD00MDAwO3c9NjAwMDthcHBpZD15dGFjaHlvbg--/https://s.yimg.com/os/creatr-uploaded-images/2026-02/b70f6da0-1091-11f1-befe-1fb675a2766f",
-    "related_tickers": [],
-    "summary": "Tariff uncertainty is pushing traders toward the precious metal."
   }
 ]

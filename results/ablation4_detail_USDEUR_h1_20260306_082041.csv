@@ -1,0 +1,61 @@
+currency,horizon,model,window_idx,news_grounding_rate,explanation_len,coherence_score,factor_types,n_factors_cited,confidence_score
+USDEUR,1,llama3-8b,0,0.9,53,0.7,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""market_technical"", ""commodity""]",5,0.5
+USDEUR,1,llama3-8b,1,0.3,35,0.61,"[""trade_balance"", ""risk_sentiment"", ""market_technical"", ""commodity""]",4,0.8
+USDEUR,1,llama3-8b,2,0.9,53,0.7,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""market_technical"", ""commodity""]",5,0.5
+USDEUR,1,llama3-8b,3,0.9,52,0.7,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""market_technical"", ""commodity""]",5,0.5
+USDEUR,1,llama3-8b,4,0.9,55,0.7,"[""monetary_policy"", ""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""market_technical"", ""commodity""]",6,0.5
+USDEUR,1,llama3-8b,5,0.9,54,0.7,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""market_technical"", ""commodity""]",5,0.5
+USDEUR,1,llama3-8b,6,0.9,53,0.7,"[""trade_balance"", ""risk_sentiment"", ""market_technical"", ""commodity""]",4,0.5
+USDEUR,1,llama3-8b,7,0.9,52,0.7,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""market_technical"", ""commodity""]",5,0.5
+USDEUR,1,llama3-8b,8,0.9,53,0.7,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""market_technical"", ""commodity""]",5,0.5
+USDEUR,1,llama3-8b,9,0.9,53,0.7,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""market_technical"", ""commodity""]",5,0.5
+USDEUR,1,llama3-8b,10,0.9,53,0.7,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""market_technical"", ""commodity""]",5,0.5
+USDEUR,1,llama3-8b,11,0.9,52,0.7,"[""trade_balance"", ""risk_sentiment"", ""market_technical"", ""commodity""]",4,0.5
+USDEUR,1,llama3-8b,12,0.9,51,0.7,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""market_technical"", ""commodity""]",5,0.5
+USDEUR,1,llama3-8b,13,0.9,55,0.7,"[""monetary_policy"", ""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""market_technical"", ""commodity""]",6,0.5
+USDEUR,1,llama3-8b,14,0.9,52,0.7,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""market_technical"", ""commodity""]",5,0.5
+USDEUR,1,llama3-8b,15,0.9,53,0.7,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""market_technical"", ""commodity""]",5,0.5
+USDEUR,1,llama3-8b,16,0.9,51,0.7,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""market_technical"", ""commodity""]",5,0.5
+USDEUR,1,llama3-8b,17,0.9,53,0.7,"[""trade_balance"", ""risk_sentiment"", ""market_technical"", ""commodity""]",4,0.5
+USDEUR,1,llama3-8b,18,0.9,54,0.7,"[""monetary_policy"", ""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""market_technical"", ""commodity""]",6,0.5
+USDEUR,1,llama3-8b,19,0.9,54,0.7,"[""monetary_policy"", ""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""market_technical"", ""commodity""]",6,0.5
+USDEUR,1,qwen2.5-7b,0,0.2,42,0.502,"[""trade_balance"", ""market_technical"", ""commodity""]",3,0.7
+USDEUR,1,qwen2.5-7b,1,0.2,40,0.49,"[""trade_balance"", ""market_technical"", ""commodity""]",3,0.7
+USDEUR,1,qwen2.5-7b,2,0.2,44,0.514,"[""trade_balance"", ""market_technical"", ""commodity""]",3,0.7
+USDEUR,1,qwen2.5-7b,3,0.2,42,0.502,"[""trade_balance"", ""market_technical"", ""commodity""]",3,0.7
+USDEUR,1,qwen2.5-7b,4,0.2,42,0.502,"[""trade_balance"", ""market_technical"", ""commodity""]",3,0.7
+USDEUR,1,qwen2.5-7b,5,0.2,42,0.502,"[""trade_balance"", ""market_technical"", ""commodity""]",3,0.7
+USDEUR,1,qwen2.5-7b,6,0.2,42,0.502,"[""trade_balance"", ""market_technical"", ""commodity""]",3,0.7
+USDEUR,1,qwen2.5-7b,7,0.2,42,0.552,"[""trade_balance"", ""economic_growth"", ""market_technical"", ""commodity""]",4,0.7
+USDEUR,1,qwen2.5-7b,8,0.2,42,0.502,"[""trade_balance"", ""market_technical"", ""commodity""]",3,0.7
+USDEUR,1,qwen2.5-7b,9,0.2,42,0.552,"[""trade_balance"", ""economic_growth"", ""market_technical"", ""commodity""]",4,0.7
+USDEUR,1,qwen2.5-7b,10,0.2,40,0.49,"[""trade_balance"", ""market_technical"", ""commodity""]",3,0.7
+USDEUR,1,qwen2.5-7b,11,0.2,36,0.566,"[""trade_balance"", ""risk_sentiment"", ""market_technical"", ""commodity""]",4,0.7
+USDEUR,1,qwen2.5-7b,12,0.2,40,0.49,"[""trade_balance"", ""market_technical"", ""commodity""]",3,0.7
+USDEUR,1,qwen2.5-7b,13,0.2,42,0.502,"[""trade_balance"", ""market_technical"", ""commodity""]",3,0.7
+USDEUR,1,qwen2.5-7b,14,0.2,42,0.502,"[""trade_balance"", ""market_technical"", ""commodity""]",3,0.7
+USDEUR,1,qwen2.5-7b,15,0.2,42,0.502,"[""trade_balance"", ""market_technical"", ""commodity""]",3,0.7
+USDEUR,1,qwen2.5-7b,16,0.2,40,0.49,"[""trade_balance"", ""market_technical"", ""commodity""]",3,0.7
+USDEUR,1,qwen2.5-7b,17,0.2,42,0.502,"[""trade_balance"", ""market_technical"", ""commodity""]",3,0.7
+USDEUR,1,qwen2.5-7b,18,0.2,42,0.502,"[""trade_balance"", ""market_technical"", ""commodity""]",3,0.7
+USDEUR,1,qwen2.5-7b,19,0.2,42,0.502,"[""trade_balance"", ""market_technical"", ""commodity""]",3,0.7
+USDEUR,1,mistral-7b,0,0.2,54,0.7,"[""trade_balance"", ""risk_sentiment"", ""market_technical"", ""commodity""]",4,0.75
+USDEUR,1,mistral-7b,1,0.2,59,0.7,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""commodity""]",4,0.7
+USDEUR,1,mistral-7b,2,0.2,50,0.7,"[""trade_balance"", ""risk_sentiment"", ""market_technical"", ""commodity""]",4,0.75
+USDEUR,1,mistral-7b,3,0.2,46,0.676,"[""trade_balance"", ""risk_sentiment"", ""market_technical"", ""commodity""]",4,0.75
+USDEUR,1,mistral-7b,4,0.2,52,0.7,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""market_technical"", ""commodity""]",5,0.75
+USDEUR,1,mistral-7b,5,0.2,49,0.694,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""market_technical"", ""commodity""]",5,0.75
+USDEUR,1,mistral-7b,6,0.2,43,0.658,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""market_technical"", ""commodity""]",5,0.75
+USDEUR,1,mistral-7b,7,0.2,39,0.584,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""commodity""]",4,0.75
+USDEUR,1,mistral-7b,8,0.2,59,0.7,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""commodity""]",4,0.7
+USDEUR,1,mistral-7b,9,0.2,39,0.584,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""commodity""]",4,0.7
+USDEUR,1,mistral-7b,10,0.2,57,0.7,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""commodity""]",4,0.7
+USDEUR,1,mistral-7b,11,0.2,43,0.658,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""market_technical"", ""commodity""]",5,0.75
+USDEUR,1,mistral-7b,12,0.2,43,0.608,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""commodity""]",4,0.7
+USDEUR,1,mistral-7b,13,0.2,48,0.688,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""market_technical"", ""commodity""]",5,0.7
+USDEUR,1,mistral-7b,14,0.2,51,0.75,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""commodity""]",4,0.75
+USDEUR,1,mistral-7b,15,0.2,57,0.7,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""commodity""]",4,0.75
+USDEUR,1,mistral-7b,16,0.2,57,0.7,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""commodity""]",4,0.75
+USDEUR,1,mistral-7b,17,0.2,53,0.7,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""market_technical"", ""commodity""]",5,0.7
+USDEUR,1,mistral-7b,18,0.2,60,0.7,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""commodity""]",4,0.7
+USDEUR,1,mistral-7b,19,0.2,48,0.688,"[""trade_balance"", ""risk_sentiment"", ""economic_growth"", ""market_technical"", ""commodity""]",5,0.7

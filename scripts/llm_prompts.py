@@ -27,10 +27,22 @@ class PromptBuilder:
         self.base_currency = currency_pair[:3]
         self.quote_currency = currency_pair[3:]
     
-    def _strict_output_instruction(self) -> str:
-        """Return strict JSON output instruction to prevent LLM from writing explanations."""
+    def _strict_output_instruction(self, current_price: float = None) -> str:
+        """
+        Return strict JSON output instruction.
+
+        Fix 2: Adds price scale hint so LLMs (especially Mistral zero-shot)
+        do not produce values at the wrong order of magnitude.
+        """
         example_values = ", ".join([str(round(1000 + i * 0.5, 2)) for i in range(self.horizon)])
-        return f"""CRITICAL INSTRUCTIONS:
+        scale_hint = ""
+        if current_price is not None:
+            scale_hint = (
+                f"\nIMPORTANT: All predicted values MUST be in the same numerical scale "
+                f"as the historical data above (i.e. around {current_price:.4f}). "
+                f"Do NOT rescale or normalise the values.\n"
+            )
+        return f"""{scale_hint}CRITICAL INSTRUCTIONS:
 - Output ONLY a single JSON object, nothing else
 - Do NOT write any explanation, reasoning, or code
 - Do NOT use markdown, backticks, or code blocks
@@ -63,7 +75,7 @@ Current Market Statistics:
 - Volatility (Std Dev): {volatility:.4f}
 - Recent Trend: {trend}
 
-{self._strict_output_instruction()}
+{self._strict_output_instruction(current_price)}
 
 {{"predictions": ["""
         
@@ -101,7 +113,7 @@ Current Market Statistics:
 - Volatility (Std Dev): {volatility:.4f}
 - Recent Trend: {trend}
 
-{self._strict_output_instruction()}
+{self._strict_output_instruction(current_price)}
 
 {{"predictions": ["""
         
@@ -136,7 +148,7 @@ Current Market Statistics:
 - Volatility (Std Dev): {volatility:.4f}
 - Recent Trend: {trend}
 
-{self._strict_output_instruction()}
+{self._strict_output_instruction(current_price)}
 
 {{"predictions": ["""
         
@@ -180,7 +192,7 @@ Current Market Statistics:
 - Volatility (Std Dev): {volatility:.4f}
 - Recent Trend: {trend}
 
-{self._strict_output_instruction()}
+{self._strict_output_instruction(current_price)}
 
 {{"predictions": ["""
         
