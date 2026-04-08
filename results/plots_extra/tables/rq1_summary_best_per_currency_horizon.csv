@@ -1,0 +1,16 @@
+currency,horizon,best_model_rmse,rmse,mae,mape,da,best_model_da,best_da
+USDAUD,1,qwen2.5-7b (baseline_llm),0.0101,0.0085,0.5904,44.4444,mistral-7b (news_only),88.8889
+USDAUD,10,arima (baseline),0.0182,0.0138,0.9027,0.0,qwen2.5-7b (baseline_llm),54.4118
+USDAUD,5,arima (baseline),0.0182,0.0138,0.9027,0.0,llama3-8b (prompt_only),67.5676
+USDEUR,1,mistral-7b (full_model),0.0065,0.0042,0.5005,66.6667,mistral-7b (baseline_llm),77.7778
+USDEUR,10,llama3-8b (prompt_only),0.0107,0.0089,1.0471,42.6471,llama3-8b (news_only),61.7647
+USDEUR,5,qwen2.5-7b (prompt_only),0.0099,0.0074,0.8719,45.9459,llama3-8b (baseline_llm),64.8649
+USDIDR,1,qwen2.5-7b (full_model),59.999,48.9993,0.2911,77.7778,qwen2.5-7b (news_only),88.8889
+USDIDR,10,mistral-7b (prompt_only),105.4106,84.8937,0.505,40.2985,qwen2.5-7b (prompt_only),61.194
+USDIDR,5,qwen2.5-7b (news_only),92.7482,71.7003,0.4265,48.6486,llama3-8b (full_model),64.8649
+USDSGD,1,qwen2.5-7b (prompt_only),0.0072,0.0035,0.2729,55.5556,qwen2.5-7b (news_only),88.8889
+USDSGD,10,qwen2.5-7b (prompt_only),0.0112,0.0087,0.6838,41.1765,mistral-7b (baseline_llm),60.2941
+USDSGD,5,qwen2.5-7b (prompt_only),0.0089,0.0066,0.515,40.5405,llama3-8b (prompt_only),59.4595
+USDTWD,1,qwen2.5-7b (baseline_llm),0.095,0.0773,0.2454,77.7778,mistral-7b (baseline_llm),88.8889
+USDTWD,10,qwen2.5-7b (news_only),0.2337,0.1878,0.596,44.1176,llama3-8b (news_only),60.2941
+USDTWD,5,mistral-7b (news_only),0.2168,0.181,0.5744,67.5676,mistral-7b (news_only),67.5676

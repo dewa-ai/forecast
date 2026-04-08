@@ -3,6 +3,23 @@
 LLM-based exchange rate forecasting (USD/IDR, USD/TWD, USD/EUR, USD/AUD, USD/SGD)
 using Yahoo Finance data.
 
+# For FULL EXPERIMENTS
+
+```bash
+# Download all currency pairs from 2016
+python3 scripts/download_yahoo_fx.py --all --start 2016-01-01
+
+# Download news for all pairs
+python3 scripts/download_yahoo_news.py --all
+
+# Forward-fill ALL calendar days (including weekends)
+python3 scripts/check_fx_data.py --data-dir data/fx_raw --fill --out-dir data/fx_filled
+
+
+```
+
+
+
 # FX Forecasting Framework - Setup & Usage Guide
 
 ## Installation

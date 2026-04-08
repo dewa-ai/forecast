@@ -13,18 +13,19 @@ GPU assignment:
   GPU 1 -> Qwen2.5-7B (port 18001)
   GPU 2 -> Mistral-7B (port 18002)
 
-Ablation study map:
-  Ablation 1 (News)        : news=False,zero  vs  news=True,zero
-  Ablation 2 (Prompt)      : news=False,zero  vs  news=False,few
-  Ablation 3 (Interaction) : 2x2 full factorial (news x prompt)
-  Ablation 4 (Explain)     : explainability metrics (coherence, grounding, factor coverage)
-  Ablation 5 (Corr)        : correlation between explanation quality and prediction accuracy
-  TSFL                     : Time Series as Foreign Language (ChatTime-inspired tokenization)
+LLM architecture: ChatTime (Wang et al., 2024) — time series data is normalized,
+discretized, and serialized into ###value### tokens before entering the prompt.
+This is the base architecture for all LLM configs.
+
+Ablation study map (2x2 factorial, all using ChatTime tokenization):
+  baseline_llm : news=False, zero-shot
+  news_only    : news=True,  zero-shot
+  prompt_only  : news=False, few-shot
+  full_model   : news=True,  few-shot
 
 Usage:
-    python3 scripts/run_full_ablation.py --output results/
-    python3 scripts/run_full_ablation.py --output results/ --skip-explain  # skip abl4&5
-    python3 scripts/run_full_ablation.py --output results/ --skip-tsfl     # skip TSFL
+    python3 run_full_ablation.py --output results/
+    python3 run_full_ablation.py --output results/ --skip-explain  # skip explainability
 """
 
 import argparse
@@ -43,15 +44,13 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from baseline_models import ARIMAForecaster, LSTMForecaster, XGBoostForecaster
 from itransformer_model import iTransformerForecaster
-from llm_prompts import PromptBuilder
 from llm_api_helper import LLMForecaster
 from evaluation_metrics import calculate_all_metrics
 from ts_tokenizer import TSFLPromptBuilder
-from explainability_ablation import ExplainabilityAblation
 
 
 # -- Server config: one model per GPU -----------------------------------------
-MEM_UTIL = 0.70  # 70% per GPU -- leaves headroom for other users
+MEM_UTIL = 0.70  # 70% per GPU
 DTYPE    = "half"
 
 LLM_SERVER_CONFIG = {
@@ -88,6 +87,7 @@ def start_all_servers() -> dict:
             "--port",                   str(cfg["port"]),
             "--gpu-memory-utilization", str(MEM_UTIL),
             "--dtype",                  DTYPE,
+            "--max-model-len",          "4096",
         ]
         Path("logs").mkdir(exist_ok=True)
         log_file = open(f"logs/{model_name}.log", "w")
@@ -156,18 +156,12 @@ class AblationStudyRunner:
         self.baseline_models = ["arima", "lstm", "xgboost", "itransformer"]
 
         self.ablation_configs = {
-            "baseline_llm": {"news": False, "prompt": "zero"},
-            "news_only":    {"news": True,  "prompt": "zero"},
-            "prompt_only":  {"news": False, "prompt": "few"},
-            "full_model":   {"news": True,  "prompt": "few"},
-            # Ablation TSFL -- Time Series as Foreign Language
-            # Following ChatTime (Wang et al., 2024): normalize to [-0.5,0.5],
-            # discretize to 10K bins, serialize as ###value### tokens.
-            # 2x2 factorial: news x few-shot
-            "tsfl_zero":     {"news": False, "prompt": "tsfl_zero"},
-            "tsfl_news":     {"news": True,  "prompt": "tsfl_news"},
-            "tsfl_few":      {"news": False, "prompt": "tsfl_few"},
-            "tsfl_few_news": {"news": True,  "prompt": "tsfl_few_news"},
+            # All configs use ChatTime tokenization (###value### format) as base architecture.
+            # Ablation varies only: news augmentation (True/False) x prompting strategy (zero/few).
+            "baseline_llm": {"news": False, "prompt": "tsfl_zero"},
+            "news_only":    {"news": True,  "prompt": "tsfl_zero"},
+            "prompt_only":  {"news": False, "prompt": "tsfl_few"},
+            "full_model":   {"news": True,  "prompt": "tsfl_few"},
         }
 
         self.results = {
@@ -290,46 +284,32 @@ class AblationStudyRunner:
 
     def _build_prompt(self, config_name, config, context_data, news,
                       currency, horizon, llm_model):
-        """Build prompt for a given config. Applies Qwen context reduction (Fix 5)."""
-        prompt_type = config["prompt"]
-
+        """
+        Build ChatTime prompt for a given config.
+        All configs use TSFLPromptBuilder (###value### tokenization).
+        Ablation varies only news augmentation and zero-shot vs few-shot.
+        Applies Qwen context reduction (Fix 5).
+        """
         # Fix 5: Reduce context for Qwen to prevent "overthinking"
         n_examples = 1 if llm_model == "qwen2.5-7b" else 3
-        max_news   = 5 if llm_model == "qwen2.5-7b" else 10
+        max_news   = 5 if llm_model == "qwen2.5-7b" else (3 if llm_model == "mistral-7b" else 10)
 
-        # --- TSFL: Time Series as Foreign Language (ChatTime, Wang et al. 2024) ---
-        # 2x2 factorial: tsfl_zero, tsfl_news, tsfl_few, tsfl_few_news
-        if prompt_type.startswith("tsfl_"):
-            tsfl_builder = TSFLPromptBuilder(currency_pair=currency, horizon=horizon)
-            use_news = config["news"]
-            use_few  = prompt_type in ("tsfl_few", "tsfl_few_news")
-            if use_few and use_news:
-                return tsfl_builder.build_few_shot_with_news(
-                    context_data, news, lookback_days=30,
-                    n_examples=n_examples, max_news=max_news)
-            elif use_few and not use_news:
-                return tsfl_builder.build_few_shot(
-                    context_data, lookback_days=30, n_examples=n_examples)
-            elif not use_few and use_news:
-                return tsfl_builder.build_with_news(
-                    context_data, news, lookback_days=30, max_news=max_news)
-            else:
-                return tsfl_builder.build_zero_shot(context_data, lookback_days=30)
+        tsfl_builder = TSFLPromptBuilder(currency_pair=currency, horizon=horizon)
+        use_news = config["news"]
+        use_few  = config["prompt"] == "tsfl_few"
 
-        # --- Standard LLM prompts ---
-        builder = PromptBuilder(currency_pair=currency, horizon=horizon)
-        if config["news"] and prompt_type == "few":
-            return builder.build_few_shot_with_news(
+        if use_few and use_news:
+            return tsfl_builder.build_few_shot_with_news(
                 context_data, news, lookback_days=30,
                 n_examples=n_examples, max_news=max_news)
-        elif config["news"] and prompt_type == "zero":
-            return builder.build_news_augmented(
-                context_data, news, lookback_days=30, max_news=max_news)
-        elif not config["news"] and prompt_type == "few":
-            return builder.build_few_shot(
+        elif use_few and not use_news:
+            return tsfl_builder.build_few_shot(
                 context_data, lookback_days=30, n_examples=n_examples)
+        elif not use_few and use_news:
+            return tsfl_builder.build_with_news(
+                context_data, news, lookback_days=30, max_news=max_news)
         else:
-            return builder.build_zero_shot(context_data, lookback_days=30)
+            return tsfl_builder.build_zero_shot(context_data, lookback_days=30)
 
     def _run_llm_single(self, currency, horizon, horizon_name,
                         data, news, llm_model, forecaster):
@@ -337,14 +317,15 @@ class AblationStudyRunner:
         Rolling window evaluation (Fix 4).
 
         Slides a 30-day context window across the test period (10 windows,
-        step=5 days) so metrics are averaged over multiple market regimes.
-        TSFL configs decode ###token### responses via TSFLTokenizer.decode().
+        step=10 days) so metrics are averaged over multiple market regimes.
+        All configs use ChatTime (TSFLPromptBuilder) — responses are decoded
+        via TSFLTokenizer.decode().
         """
         print(f"\n  [{currency}] {horizon_name} ({horizon}d)")
 
         LOOKBACK  = 30
         N_WINDOWS = 10
-        STEP      = 5
+        STEP      = 10
 
         if len(data) < LOOKBACK + (horizon + STEP) * N_WINDOWS:
             N_WINDOWS = 1
@@ -355,7 +336,6 @@ class AblationStudyRunner:
         for config_name, config in self.ablation_configs.items():
             try:
                 all_y_true, all_y_pred = [], []
-                is_tsfl = config["prompt"].startswith("tsfl_")
 
                 for w in range(N_WINDOWS):
                     window_end   = len(data) - (N_WINDOWS - w) * STEP - horizon
@@ -371,18 +351,11 @@ class AblationStudyRunner:
                         config_name, config, context_data, news,
                         currency, horizon, llm_model)
 
-                    if is_tsfl:
-                        # TSFL: LLM outputs ###tokens### — use TSFLTokenizer to decode
-                        tsfl_builder = TSFLPromptBuilder(currency_pair=currency, horizon=horizon)
-                        raw_response = forecaster.api.call(prompt, model=llm_model, is_tsfl=True)
-                        ref_prices   = context_data["close"].values[-LOOKBACK:]
-                        pred         = tsfl_builder.decode_response(
-                            raw_response, ref_prices, horizon)
-                    else:
-                        # Standard: LLM outputs JSON {"predictions": [...]}
-                        pred = forecaster.predict(
-                            prompt, model=llm_model, expected_scale=last_price)
-                        pred = pred[:horizon] if len(pred) >= horizon else np.tile(pred, (horizon // len(pred)) + 1)[:horizon]
+                    # All configs use ChatTime: LLM outputs ###tokens### → decode via TSFLTokenizer
+                    tsfl_builder = TSFLPromptBuilder(currency_pair=currency, horizon=horizon)
+                    raw_response = forecaster.api.call(prompt, model=llm_model, is_tsfl=True)
+                    ref_prices   = context_data["close"].values[-LOOKBACK:]
+                    pred         = tsfl_builder.decode_response(raw_response, ref_prices, horizon)
                         
                     # Fix 6: warn if flat predictions
                     if np.std(pred) < np.std(y_true_arr) * 0.001:
@@ -410,42 +383,6 @@ class AblationStudyRunner:
                 print(f"    {config_name} ERROR: {e}")
         return results
 
-    # -- Explainability phase (Ablation 4 & 5) ---------------------------------
-
-    def run_all_explainability(self, skip: bool = False):
-        if skip:
-            print("\n[SKIP] Ablation 4 & 5 (--skip-explain flag)")
-            return
-
-        print("\n" + "="*60)
-        print("PHASE 3: ABLATION 4 & 5 (EXPLAINABILITY)")
-        print("="*60)
-
-        procs = start_all_servers()
-        if not procs:
-            print("ERROR: No LLM servers. Skipping explainability ablation.")
-            return
-
-        try:
-            forecaster = LLMForecaster(backend="vllm")
-            abl = ExplainabilityAblation(forecaster, output_dir=str(self.output_dir))
-
-            for currency in self.currencies:
-                data_file = self.data_dir / f"{currency}.csv"
-                news_file = self.news_dir / f"{currency}_news.json"
-                if not data_file.exists():
-                    continue
-                data = pd.read_csv(data_file)
-                news = json.load(open(news_file)) if news_file.exists() else []
-
-                for horizon_name, horizon in self.horizons.items():
-                    available_models = [m for m in self.llm_models if m in procs]
-                    abl.run(data, news, currency, horizon, llm_models=available_models)
-
-            print("\n[OK] Ablation 4 & 5 complete. Check results/ablation4_*.csv and ablation5_*.csv")
-        finally:
-            stop_all_servers(procs)
-
     # -- Save / summary -------------------------------------------------------
 
     def save_results(self):
@@ -468,28 +405,19 @@ class AblationStudyRunner:
             self.output_dir / "combined_summary.csv", index=False)
         print(f"[SAVED] Summary CSVs -> {self.output_dir}")
 
-    def run_all(self, skip_explain: bool = False, skip_tsfl: bool = False):
+    def run_all(self):
         start_time = datetime.now()
         print("\n" + "="*60)
         print("STARTING COMPLETE ABLATION STUDY")
+        print(f"  Architecture : ChatTime (###value### tokenization)")
         print(f"  GPU 0 -> llama3-8b  (port 18000)")
         print(f"  GPU 1 -> qwen2.5-7b (port 18001)")
         print(f"  GPU 2 -> mistral-7b (port 18002)")
-        print(f"  Ablations 1-3: news/prompt/interaction")
-        print(f"  Ablation TSFL: Time Series as Foreign Language {'[SKIP]' if skip_tsfl else ''}")
-        print(f"  Ablation 4-5:  explainability + correlation {'[SKIP]' if skip_explain else ''}")
+        print(f"  Ablation 2x2 : news x prompting strategy")
         print("="*60)
-
-        # If skip_tsfl, remove TSFL configs from ablation_configs
-        if skip_tsfl:
-            self.ablation_configs = {
-                k: v for k, v in self.ablation_configs.items()
-                if not k.startswith("tsfl_")
-            }
 
         self.run_all_baselines()
         self.run_all_llms()
-        self.run_all_explainability(skip=skip_explain)
 
         elapsed = datetime.now() - start_time
         self.results["metadata"]["end_time"] = datetime.now().isoformat()
@@ -505,13 +433,9 @@ class AblationStudyRunner:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data-dir",     default="data/fx_filled")
-    parser.add_argument("--news-dir",     default="data/fx_news")
-    parser.add_argument("--output",       default="results")
-    parser.add_argument("--skip-explain", action="store_true",
-                        help="Skip Ablation 4 & 5 (explainability)")
-    parser.add_argument("--skip-tsfl",    action="store_true",
-                        help="Skip TSFL (Time Series as Foreign Language) ablation")
+    parser.add_argument("--data-dir", default="data/fx_filled")
+    parser.add_argument("--news-dir", default="data/fx_news")
+    parser.add_argument("--output",   default="results")
     args = parser.parse_args()
 
     # Kill only this user's stale vLLM servers (if any) before starting new ones
@@ -520,7 +444,7 @@ def main():
     time.sleep(3)
 
     runner = AblationStudyRunner(args.data_dir, args.news_dir, args.output)
-    runner.run_all(skip_explain=args.skip_explain, skip_tsfl=args.skip_tsfl)
+    runner.run_all()
 
 
 if __name__ == "__main__":

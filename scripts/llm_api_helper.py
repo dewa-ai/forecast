@@ -119,20 +119,23 @@ class vLLMAPI(BaseAPI):
         }
 
     def call(self, prompt: str, model: str = 'llama3-8b',
-             temperature: float = 0.1, max_tokens: int = 1000,
+             temperature: float = 0.3, max_tokens: int = 1000,
              use_system_prompt: bool = True, **kwargs) -> str:
         """
         Call vLLM API (OpenAI-compatible chat completions).
 
-        Args:
-            prompt: Input prompt
-            model: Model name
-            temperature: Sampling temperature
-            max_tokens: Maximum output tokens
-            use_system_prompt: If True, prepend a JSON-only system message.
-                               Helps prevent Mistral/LLaMA from outputting prose
-                               instead of JSON (root cause of MAPE=7876 anomaly).
+        For TSFL prompts (is_tsfl=True):
+          - System prompt instructs ###value### format output (not JSON)
+          - Stop tokens cleared so ### tokens are not cut off
+          - Retries up to 3 times if response has no ###value### tokens
+          - Temperature 0.3 to reduce flat/repetitive outputs
+
+        For standard prompts:
+          - System prompt instructs JSON output
+          - Stop tokens prevent runaway generation
         """
+        is_tsfl = kwargs.pop("is_tsfl", False)
+
         base_url = self.endpoints.get(model)
         if not base_url:
             raise ValueError(f"Unknown model: {model}. "
@@ -141,44 +144,72 @@ class vLLMAPI(BaseAPI):
         model_id = self.model_ids.get(model)
         url = f"{base_url}/v1/chat/completions"
 
-        # Fix 1: system prompt forces JSON-only output
         messages = []
         if use_system_prompt:
-            messages.append({
-                "role": "system",
-                "content": (
-                    "You are a JSON-only financial forecasting assistant. "
-                    "You must output ONLY a valid JSON object with a 'predictions' key "
-                    "containing a list of numbers. "
-                    "Do NOT output any explanation, reasoning, markdown, or code blocks. "
-                    "Start your response with { and end with }."
-                )
-            })
+            if is_tsfl:
+                messages.append({
+                    "role": "system",
+                    "content": (
+                        "You are a time series forecasting assistant. "
+                        "You must output ONLY ###value### tokens separated by spaces. "
+                        "Each value must be a decimal number between -1.0 and 1.0. "
+                        "Each token MUST have a different value — never repeat the same value. "
+                        "Do NOT output any explanation, reasoning, or text. "
+                        "Output format: ###0.1234### ###0.2345### ###0.3456###"
+                    )
+                })
+            else:
+                messages.append({
+                    "role": "system",
+                    "content": (
+                        "You are a JSON-only financial forecasting assistant. "
+                        "You must output ONLY a valid JSON object with a 'predictions' key "
+                        "containing a list of numbers. "
+                        "Do NOT output any explanation, reasoning, markdown, or code blocks. "
+                        "Start your response with { and end with }."
+                    )
+                })
         messages.append({"role": "user", "content": prompt})
 
         data = {
-            "model": model_id,
-            "messages": messages,
+            "model":       model_id,
+            "messages":    messages,
             "temperature": temperature,
-            "max_tokens": max_tokens,
-            "stop": [] if kwargs.pop("is_tsfl", False) else ["\n\n\n", "###", "Example"],
+            "max_tokens":  max_tokens,
+            "stop":        [] if is_tsfl else ["\n\n\n", "###", "Example"],
         }
 
-        try:
-            response = requests.post(url, json=data, timeout=120)
-            response.raise_for_status()
-            result = response.json()
-            return result['choices'][0]['message']['content']
+        max_retries = 3 if is_tsfl else 1
+        last_response = ""
 
-        except requests.exceptions.ConnectionError:
-            raise ConnectionError(
-                f"Could not connect to {model} at {base_url}. "
-                f"Start vLLM servers: bash scripts/start_vllm_servers.sh"
-            )
-        except requests.exceptions.Timeout:
-            raise TimeoutError(f"Request to {model} timed out.")
-        except Exception as e:
-            raise RuntimeError(f"vLLM error: {str(e)}")
+        for attempt in range(max_retries):
+            try:
+                response = requests.post(url, json=data, timeout=120)
+                response.raise_for_status()
+                result = response.json()
+                content = result["choices"][0]["message"]["content"]
+
+                if is_tsfl:
+                    if re.findall(r"###([+-]?\d+\.\d+)###", content):
+                        return content
+                    last_response = content
+                    print(f"    [RETRY {attempt+1}/{max_retries}] No ###tokens### in response")
+                    data["temperature"] = min(0.7, temperature + 0.2 * (attempt + 1))
+                else:
+                    return content
+
+            except requests.exceptions.ConnectionError:
+                raise ConnectionError(
+                    f"Could not connect to {model} at {base_url}. "
+                    f"Start vLLM servers: bash scripts/start_vllm_servers.sh"
+                )
+            except requests.exceptions.Timeout:
+                raise TimeoutError(f"Request to {model} timed out.")
+            except Exception as e:
+                raise RuntimeError(f"vLLM error: {str(e)}")
+
+        return last_response
+
 
 
 class OllamaAPI(BaseAPI):

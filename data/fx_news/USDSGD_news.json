@@ -1,13 +1,43 @@
 [
   {
-    "title": "Singapore Dollar Strengthens on Possible Position Adjustments Before U.S. Data",
+    "title": "War sets dollar for monthly rise, yen recovers on intervention threat ",
+    "publisher": "Reuters",
+    "link": "https://finance.yahoo.com/news/war-sets-dollar-monthly-rise-004541236.html",
+    "published_at": "2026-03-31 00:45:41",
+    "type": "STORY",
+    "thumbnail": "https://s.yimg.com/uu/api/res/1.2/BMPVclRpFb78JhytNpj5vQ--~B/aD01MzQ7dz04MDA7YXBwaWQ9eXRhY2h5b24-/https://media.zenfs.com/en/reuters.com/19e009eaedb09be05e16671e94296d63",
+    "related_tickers": [],
+    "summary": "SINGAPORE, March 31 (Reuters) - The dollar headed for its biggest monthly gain since July on Tuesday and stands out as the strongest so-called safe asset as war in the Mideast has set oil prices"
+  },
+  {
+    "title": "Iran war spotlights India rupee's vulnerability, banks pitch cross-currency trades",
+    "publisher": "Reuters",
+    "link": "https://finance.yahoo.com/news/iran-war-spotlights-india-rupees-082836731.html",
+    "published_at": "2026-03-18 08:28:36",
+    "type": "STORY",
+    "thumbnail": "https://s.yimg.com/uu/api/res/1.2/pSAx46bTozPBqOQ2qfvxBw--~B/aD01MzQ7dz04MDA7YXBwaWQ9eXRhY2h5b24-/https://media.zenfs.com/en/reuters.com/d62c5ae7feb6421f79ca0219b73addf5",
+    "related_tickers": [],
+    "summary": "By Nimesh Vora and Jaspreet Kalra MUMBAI, March 18 (Reuters) - Dark clouds over the rupee's outlook are prompting banks to pitch cross-currency trades targeting its underperformance against certain"
+  },
+  {
+    "title": "Sembcorp Seeks A$3 Billion Loan to Support A$6.5 Billion Alinta Energy Deal",
+    "publisher": "GuruFocus.com",
+    "link": "https://finance.yahoo.com/news/sembcorp-seeks-3-billion-loan-204404718.html",
+    "published_at": "2026-03-10 20:44:04",
+    "type": "STORY",
+    "thumbnail": "",
+    "related_tickers": [],
+    "summary": "Singapore's Sembcorp is arranging financing to help fund its planned A$6.5 billion acquisition of Australia's Alinta Energy."
+  },
+  {
+    "title": "Asian Stocks, Currencies and Bonds Drop",
     "publisher": "The Wall Street Journal",
     "link": "",
-    "published_at": "2026-03-06 02:33:00",
+    "published_at": "2026-03-09 08:10:32",
     "type": "STORY",
-    "thumbnail": "https://s.yimg.com/uu/api/res/1.2/Fwf5HL4GsEGPbDfR3MJBPg--~B/aD02MzA7dz0xMjAwO2FwcGlkPXl0YWNoeW9u/https://media.zenfs.com/en/wsj.com/7b2c285183be07ca3c4e8242b25a59a8",
+    "thumbnail": "https://s.yimg.com/uu/api/res/1.2/SIvLAIBDLzM1e1g8mbF.dQ--~B/aD02NDA7dz0xMjgwO2FwcGlkPXl0YWNoeW9u/https://media.zenfs.com/en/wsj.com/88a9dd8248d2323b0807f68b7b250728",
     "related_tickers": [],
-    "summary": "The Singapore dollar strengthens against its U.S. counterpart in the Asian session on possible position adjustments."
+    "summary": "Asian stock markets skidded, as escalating Middle East tensions saw oil prices breach $100 a barrel for the first time since 2022.  South Korea’s Kospi composite slumped roughly 6%, while Japan’s Nikkei 225 fell more than 5%."
   },
   {
     "title": "Dollar firm as investors mull a Fed under Warsh; yen back under the spotlight",
@@ -60,16 +90,6 @@
     "summary": "By Tom Westbrook SINGAPORE, Jan 22 (Reuters) - The dollar was higher, gold softer and stocks on the rebound on Thursday after U.S."
   },
   {
-    "title": "Yen Could Recover if Breaks Beyond 154.50 Per Dollar",
-    "publisher": "The Wall Street Journal",
-    "link": "",
-    "published_at": "2025-12-22 15:24:00",
-    "type": "STORY",
-    "thumbnail": "https://s.yimg.com/uu/api/res/1.2/Fwf5HL4GsEGPbDfR3MJBPg--~B/aD02MzA7dz0xMjAwO2FwcGlkPXl0YWNoeW9u/https://media.zenfs.com/en/wsj.com/7b2c285183be07ca3c4e8242b25a59a8",
-    "related_tickers": [],
-    "summary": "The Japanese yen might sustain a recovery if it breaks sustainably beyond key chart support at 154.50 yen per dollar, Societe Generale said."
-  },
-  {
     "title": "StraitsX to debut Singapore and U.S. dollar stablecoins on Solana for quick currency exchange",
     "publisher": "CoinDesk",
     "link": "https://finance.yahoo.com/news/straitsx-debut-singapore-u-dollar-063827339.html",
@@ -78,25 +98,5 @@
     "thumbnail": "https://s.yimg.com/uu/api/res/1.2/nL0rS50vmCDAixoi7hMMpQ--~B/aD0xMDgwO3c9MTkyMDthcHBpZD15dGFjaHlvbg--/https://media.zenfs.com/en/coindesk_75/8e2a96fec90e100888a173000daec329",
     "related_tickers": [],
     "summary": "The debut will enable instant swaps between SGD and USD on Solana, facilitating digital forex trading."
-  },
-  {
-    "title": "Standard Chartered, Coinbase Expand Crypto Prime Services for Institutions",
-    "publisher": "CoinDesk",
-    "link": "https://finance.yahoo.com/news/standard-chartered-coinbase-expand-crypto-090436391.html",
-    "published_at": "2025-12-12 09:04:36",
-    "type": "STORY",
-    "thumbnail": "https://s.yimg.com/uu/api/res/1.2/53Dlz0h.YMI60KNoFvsF4g--~B/aD0xMDgwO3c9MTkyMDthcHBpZD15dGFjaHlvbg--/https://media.zenfs.com/en/coindesk_75/cce0f7ed378502d541440d8b87d2b0c5",
-    "related_tickers": [],
-    "summary": "The companies will explore the development of trading, prime services, custody, staking and lending solutions for institutional clients."
-  },
-  {
-    "title": "Stocks soar on Nvidia earnings relief as markets brace for US jobs data",
-    "publisher": "Reuters",
-    "link": "https://finance.yahoo.com/news/stocks-soar-nvidia-earnings-relief-070403095.html",
-    "published_at": "2025-11-20 07:04:03",
-    "type": "STORY",
-    "thumbnail": "https://s.yimg.com/uu/api/res/1.2/QCBdrkQI94Qb42p.4cLbaw--~B/aD01MzQ7dz04MDA7YXBwaWQ9eXRhY2h5b24-/https://media.zenfs.com/en/reuters.com/c2e822f2e8f57bec134c5983ce19e3fe",
-    "related_tickers": [],
-    "summary": "By Gregor Stuart Hunter SINGAPORE (Reuters) -A relief rally swept across Asian markets and lifted stocks on Thursday as investors cheered Nvidia's market-topping earnings, while the dollar ticked up"
   }
 ]

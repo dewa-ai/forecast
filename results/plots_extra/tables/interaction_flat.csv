@@ -1,0 +1,5 @@
+config,news,prompt,mean_rmse,mean_mae,mean_mape,mean_da
+baseline_llm,No,zero,22.6598,18.4092,0.9889,55.3693
+news_only,Yes,zero,23.5767,18.9936,1.1631,53.2773
+prompt_only,No,few,20.2768,16.5722,0.8993,53.1999
+full_model,Yes,few,20.3874,16.9722,0.9377,54.1834

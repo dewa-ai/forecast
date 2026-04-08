@@ -72,7 +72,11 @@ class TSFLTokenizer:
 
         matches = re.findall(r"###([+-]?\d+\.\d+)###", token_str)
         if not matches:
-            return np.full(horizon, ref_prices[-1])
+            # Fallback: small random walk from last price instead of flat
+            last = ref_prices[-1]
+            daily_vol = float(np.std(np.diff(ref_prices))) if len(ref_prices) > 1 else last * 0.001
+            rw = np.cumsum(np.random.normal(0, daily_vol, horizon))
+            return last + rw
 
         scaled = np.array([float(m) for m in matches[:horizon]])
 

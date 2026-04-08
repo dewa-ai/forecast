@@ -15,7 +15,7 @@ set -e
 VLLM_CMD="python3 -m vllm.entrypoints.openai.api_server"  # use module, no binary needed
 GPU_ID=(0 1 2)                           # GPU to use — change if GPU 1 is busy
 PORTS=(18000 18001 18002)                # avoid 8000-8002 which may be taken
-MEM_UTIL=0.70                            # 30% each × 3 models = 90% of GPU
+MEM_UTIL=0.90                            # GPU memory utilization per model
 DTYPE="half"                             # float16 to save VRAM
 WAIT_BETWEEN=60                          # seconds to wait between model starts
 MAX_LEN=8192                             # max sequence length for vLLM (default 4096 may be too small for some models)
