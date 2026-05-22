@@ -40,8 +40,7 @@ plt.rcParams.update({
     "font.family": "DejaVu Sans",
     "axes.spines.top": False,
     "axes.spines.right": False,
-    "axes.grid": True,
-    "grid.alpha": 0.3,
+    "axes.grid": False,
     "figure.dpi": 150,
 })
 
@@ -86,9 +85,15 @@ def _load_csv(path: Path) -> Optional[pd.DataFrame]:
 def _savefig(outpath: Path) -> None:
     outpath.parent.mkdir(parents=True, exist_ok=True)
     plt.tight_layout()
+    plt.subplots_adjust(bottom=0.22)
     plt.savefig(outpath, dpi=180, bbox_inches="tight")
     plt.close()
     print(f"  [OK] {outpath.name}")
+
+
+def _fmt(val: float, metric: str) -> str:
+    """Consistent label formatting: RMSE → 2 decimals, DA → 1 decimal."""
+    return f"{val:.2f}"
 
 
 # ── RQ1: LLM vs Baseline ─────────────────────────────────────────────────────
@@ -101,7 +106,6 @@ def plot_rq1(combined: pd.DataFrame, outdir: Path) -> None:
     """
     print("\n[RQ1] LLM vs Baseline...")
 
-    # Identify baseline vs LLM models
     baseline_names = {"arima", "lstm", "xgboost", "itransformer"}
 
     def model_type(m: str) -> str:
@@ -110,7 +114,6 @@ def plot_rq1(combined: pd.DataFrame, outdir: Path) -> None:
     df = combined.copy()
     df["type"] = df["model"].apply(model_type)
 
-    # For LLMs, use best config per (model, currency, horizon) by RMSE
     llm_df = df[df["type"] == "LLM"].copy()
     if not llm_df.empty and "rmse" in llm_df.columns:
         idx = llm_df.groupby(["model", "currency", "horizon"])["rmse"].idxmin()
@@ -121,7 +124,7 @@ def plot_rq1(combined: pd.DataFrame, outdir: Path) -> None:
     base_df = df[df["type"] == "Baseline"].copy()
     plot_df = pd.concat([base_df, llm_best], ignore_index=True)
 
-    # ── Plot 1a: Overall mean RMSE per model ──
+    # ── Plot 1a: Overall mean RMSE/DA per model ──
     for metric, ascending, ylabel, suffix in [
         ("rmse", True,  "Mean RMSE (lower is better)", "rmse"),
         ("da",   False, "Mean Directional Accuracy % (higher is better)", "da"),
@@ -139,24 +142,26 @@ def plot_rq1(combined: pd.DataFrame, outdir: Path) -> None:
         colors = [COLORS[0] if t == "Baseline" else COLORS[1] for t in agg["type"]]
         bars = ax.bar(agg["model"], agg[metric], color=colors, edgecolor="white", linewidth=0.8)
 
-        # Legend patches
         from matplotlib.patches import Patch
         legend_elements = [
             Patch(facecolor=COLORS[0], label="Baseline"),
             Patch(facecolor=COLORS[1], label="LLM (best config)"),
         ]
-        ax.legend(handles=legend_elements, fontsize=9)
-        ax.set_xlabel("Model")
+        ax.legend(handles=legend_elements, fontsize=9, ncol=2,
+                  loc="lower center", bbox_to_anchor=(0.5, -0.25), framealpha=0.9)
         ax.set_ylabel(ylabel)
-        ax.set_title(f"RQ1 — Overall {metric.upper()} by Model")
-        plt.xticks(rotation=30, ha="right")
+        plt.xticks(rotation=0, ha="center")
+        for bar in bars:
+            h = bar.get_height()
+            if not np.isnan(h):
+                ax.text(bar.get_x() + bar.get_width() / 2, h + 0.3,
+                        _fmt(h, metric), ha="center", va="bottom", fontsize=8)
         _savefig(outdir / f"rq1_llm_vs_baseline_{suffix}.png")
 
-    # ── Plot 1b: Per-currency mean RMSE (grouped bar: baseline best vs LLM best) ──
+    # ── Plot 1b: Per-currency best RMSE ──
     if "currency" not in plot_df.columns or "rmse" not in plot_df.columns:
         return
 
-    # Best model per (type, currency)
     base_best = (base_df.dropna(subset=["rmse"])
                         .groupby(["type", "currency"])["rmse"].min().reset_index())
     llm_best2 = (llm_best.dropna(subset=["rmse"])
@@ -176,13 +181,17 @@ def plot_rq1(combined: pd.DataFrame, outdir: Path) -> None:
         ax.bar(x + i * width, vals, width, label=t, color=COLORS[i], edgecolor="white")
 
     ax.set_xticks(x + width / 2)
-    ax.set_xticklabels(currencies, rotation=20, ha="right")
+    ax.set_xticklabels(currencies, rotation=0, ha="center")
     ax.set_ylabel("Best RMSE (lower is better)")
-    ax.set_title("RQ1 — Best RMSE per Currency: Baseline vs LLM")
-    ax.legend()
+    ax.legend(loc="lower center", bbox_to_anchor=(0.5, -0.25), framealpha=0.9, ncol=2)
+    for bar in ax.patches:
+        h = bar.get_height()
+        if not np.isnan(h) and h > 0:
+            ax.text(bar.get_x() + bar.get_width() / 2, h + 0.3,
+                    _fmt(h, "rmse"), ha="center", va="bottom", fontsize=7)
     _savefig(outdir / "rq1_per_currency_rmse.png")
 
-    # ── Plot 1c: Per-currency DA ──
+    # ── Plot 1c: Per-currency best DA ──
     if "da" not in plot_df.columns:
         return
 
@@ -200,10 +209,14 @@ def plot_rq1(combined: pd.DataFrame, outdir: Path) -> None:
         ax.bar(x + i * width, vals, width, label=t, color=COLORS[i], edgecolor="white")
 
     ax.set_xticks(x + width / 2)
-    ax.set_xticklabels(currencies, rotation=20, ha="right")
+    ax.set_xticklabels(currencies, rotation=0, ha="center")
     ax.set_ylabel("Best DA % (higher is better)")
-    ax.set_title("RQ1 — Best DA per Currency: Baseline vs LLM")
-    ax.legend()
+    ax.legend(loc="lower center", bbox_to_anchor=(0.5, -0.25), framealpha=0.9, ncol=2)
+    for bar in ax.patches:
+        h = bar.get_height()
+        if not np.isnan(h) and h > 0:
+            ax.text(bar.get_x() + bar.get_width() / 2, h + 0.3,
+                    _fmt(h, "da"), ha="center", va="bottom", fontsize=7)
     _savefig(outdir / "rq1_per_currency_da.png")
 
 
@@ -254,10 +267,14 @@ def plot_rq2(llm: pd.DataFrame, outdir: Path) -> None:
                    color=COLORS[i], edgecolor="white")
 
         ax.set_xticks(x + width / 2)
-        ax.set_xticklabels(models, rotation=20, ha="right")
+        ax.set_xticklabels(models, rotation=0, ha="center")
         ax.set_ylabel(ylabel)
-        ax.set_title(f"RQ2 — News Augmentation Effect on {metric.upper()}")
-        ax.legend(title="News")
+        ax.legend(title="News", loc="lower center", bbox_to_anchor=(0.5, -0.25), framealpha=0.9, ncol=2)
+        for bar in ax.patches:
+            h = bar.get_height()
+            if not np.isnan(h) and h > 0:
+                ax.text(bar.get_x() + bar.get_width() / 2, h + 0.3,
+                        _fmt(h, metric), ha="center", va="bottom", fontsize=8)
         _savefig(outdir / f"rq2_news_effect_{suffix}.png")
 
 
@@ -308,10 +325,14 @@ def plot_rq3(llm: pd.DataFrame, outdir: Path) -> None:
                    color=COLORS[i+2], edgecolor="white")
 
         ax.set_xticks(x + width / 2)
-        ax.set_xticklabels(models, rotation=20, ha="right")
+        ax.set_xticklabels(models, rotation=0, ha="center")
         ax.set_ylabel(ylabel)
-        ax.set_title(f"RQ3 — Prompting Strategy Effect on {metric.upper()}")
-        ax.legend(title="Prompt")
+        ax.legend(title="Prompt", loc="lower center", bbox_to_anchor=(0.5, -0.25), framealpha=0.9, ncol=2)
+        for bar in ax.patches:
+            h = bar.get_height()
+            if not np.isnan(h) and h > 0:
+                ax.text(bar.get_x() + bar.get_width() / 2, h + 0.3,
+                        _fmt(h, metric), ha="center", va="bottom", fontsize=8)
         _savefig(outdir / f"rq3_prompt_effect_{suffix}.png")
 
 
@@ -364,14 +385,12 @@ def plot_rq4(llm: pd.DataFrame, outdir: Path) -> None:
         ax.set_yticklabels(pivot.index, fontsize=10)
         ax.set_xlabel("Prompting Strategy")
         ax.set_ylabel("News Augmentation")
-        ax.set_title(f"RQ4 — Interaction Effect ({metric.upper()}, {better} is better)")
 
-        # Annotate cells
         for i in range(len(pivot.index)):
             for j in range(len(pivot.columns)):
                 val = pivot.values[i, j]
                 if not np.isnan(val):
-                    ax.text(j, i, f"{val:.2f}", ha="center", va="center",
+                    ax.text(j, i, _fmt(val, metric), ha="center", va="center",
                             fontsize=11, fontweight="bold", color="black")
 
         _savefig(outdir / f"rq4_interaction_heatmap_{suffix}.png")
@@ -404,10 +423,14 @@ def plot_rq4(llm: pd.DataFrame, outdir: Path) -> None:
                    color=COLORS[i], edgecolor="white")
 
         ax.set_xticks(x)
-        ax.set_xticklabels(models, rotation=20, ha="right")
+        ax.set_xticklabels(models, rotation=0, ha="center")
         ax.set_ylabel(f"{ylabel} ({better} is better)")
-        ax.set_title(f"RQ4 — All Ablation Configs: {metric.upper()} per Model")
-        ax.legend(fontsize=8, ncol=2)
+        ax.legend(fontsize=8, ncol=4, loc="lower center", bbox_to_anchor=(0.5, -0.30), framealpha=0.9)
+        for bar in ax.patches:
+            h = bar.get_height()
+            if not np.isnan(h) and h > 0:
+                ax.text(bar.get_x() + bar.get_width() / 2, h + 0.3,
+                        _fmt(h, metric), ha="center", va="bottom", fontsize=7)
         _savefig(outdir / f"rq4_interaction_grouped_{suffix}.png")
 
 

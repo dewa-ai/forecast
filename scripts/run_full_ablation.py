@@ -13,7 +13,7 @@ GPU assignment:
   GPU 1 -> Qwen2.5-7B (port 18001)
   GPU 2 -> Mistral-7B (port 18002)
 
-LLM architecture: ChatTime (Wang et al., 2024) — time series data is normalized,
+LLM architecture: ChatTime (Wang et al., 2025) — time series data is normalized,
 discretized, and serialized into ###value### tokens before entering the prompt.
 This is the base architecture for all LLM configs.
 
