@@ -1,118 +1,116 @@
 #!/usr/bin/env python3
 """
 Evaluation metrics for FX forecasting ablation study.
-Includes: MAE, RMSE, MAPE, Directional Accuracy (DA).
+Includes: MAE, RMSE, MAPE, and Directional Accuracy (DA).
 
-Example:
-    from evaluation_metrics import calculate_all_metrics
-
-    metrics = calculate_all_metrics(y_true, y_pred)
+DA is computed against the last observed actual value for each forecast window:
+    sign(y_t - y_{t-1}) == sign(yhat_t - y_{t-1})
+For multi-step horizons, y_{t-1} is the previous actual value inside the same
+forecast window, with the first step anchored to the last observed context value.
 """
 
 from __future__ import annotations
 
 import numpy as np
-from typing import Dict
+from typing import Dict, Optional
 
 
 def rmse(y_true: np.ndarray, y_pred: np.ndarray) -> float:
-    """
-    Root Mean Squared Error.
-    
-    Measures average magnitude of errors, giving more weight to large errors.
-    Lower is better.
-    """
-    return np.sqrt(np.mean((y_true - y_pred) ** 2))
+    """Root Mean Squared Error. Lower is better."""
+    y_true = np.asarray(y_true, dtype=float)
+    y_pred = np.asarray(y_pred, dtype=float)
+    return float(np.sqrt(np.mean((y_true - y_pred) ** 2)))
 
 
 def mae(y_true: np.ndarray, y_pred: np.ndarray) -> float:
-    """
-    Mean Absolute Error.
-    
-    Measures average magnitude of errors, robust to outliers.
-    Lower is better.
-    """
-    return np.mean(np.abs(y_true - y_pred))
+    """Mean Absolute Error. Lower is better."""
+    y_true = np.asarray(y_true, dtype=float)
+    y_pred = np.asarray(y_pred, dtype=float)
+    return float(np.mean(np.abs(y_true - y_pred)))
 
 
 def mape(y_true: np.ndarray, y_pred: np.ndarray) -> float:
-    """
-    Mean Absolute Percentage Error.
-    
-    Scale-independent metric, expressed as percentage.
-    Lower is better.
-    
-    Note: Returns infinity if any y_true is zero.
-    """
-    # Avoid division by zero
+    """Mean Absolute Percentage Error, expressed as a percentage. Lower is better."""
+    y_true = np.asarray(y_true, dtype=float)
+    y_pred = np.asarray(y_pred, dtype=float)
     mask = y_true != 0
     if not np.any(mask):
-        return np.inf
-    
-    return np.mean(np.abs((y_true[mask] - y_pred[mask]) / y_true[mask])) * 100
+        return float("inf")
+    return float(np.mean(np.abs((y_true[mask] - y_pred[mask]) / y_true[mask])) * 100)
 
 
-def directional_accuracy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+def directional_accuracy(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    last_actual: Optional[float] = None,
+) -> float:
     """
-    Directional Accuracy (DA).
+    Directional Accuracy (DA), returned as a percentage in [0, 100].
 
-    Measures percentage of correct directional predictions (up/down).
-    Critical for trading applications.
-    Higher is better. Range: [0, 100]
+    Preferred use for forecasting windows:
+        directional_accuracy(y_true_window, y_pred_window, last_actual=context_last_price)
 
-    Fix 6: If predictions are flat (all same value), DA is explicitly 0.0
-    rather than NaN — making it clear the model failed to predict direction.
+    This implements:
+        sign(y_t - y_{t-1}) == sign(yhat_t - y_{t-1})
+
+    If last_actual is not provided, the function falls back to the older behavior
+    based on np.diff(y_true) and np.diff(y_pred). This fallback is kept only for
+    backward compatibility; thesis experiments should pass last_actual.
     """
-    if len(y_true) < 2:
-        return np.nan
+    y_true = np.asarray(y_true, dtype=float)
+    y_pred = np.asarray(y_pred, dtype=float)
 
-    # Fix 6: flat predictions → DA = 0 (not NaN)
-    if np.std(y_pred) == 0:
-        return 0.0
+    if len(y_true) != len(y_pred):
+        raise ValueError("y_true and y_pred must have the same length")
+    if len(y_true) == 0:
+        return float("nan")
 
-    actual_direction    = np.sign(np.diff(y_true))
-    predicted_direction = np.sign(np.diff(y_pred))
+    # Backward-compatible fallback. Do not use this for final thesis DA.
+    if last_actual is None:
+        if len(y_true) < 2:
+            return float("nan")
+        actual_direction = np.sign(np.diff(y_true))
+        predicted_direction = np.sign(np.diff(y_pred))
+    else:
+        prev_actual = np.concatenate([[float(last_actual)], y_true[:-1]])
+        actual_direction = np.sign(y_true - prev_actual)
+        predicted_direction = np.sign(y_pred - prev_actual)
 
     mask = actual_direction != 0
     if not np.any(mask):
-        return np.nan
+        return float("nan")
 
     correct = np.sum(actual_direction[mask] == predicted_direction[mask])
-    total   = np.sum(mask)
-
-    return (correct / total) * 100
-
+    total = np.sum(mask)
+    return float((correct / total) * 100)
 
 
-def calculate_all_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
+def calculate_all_metrics(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    last_actual: Optional[float] = None,
+) -> Dict[str, float]:
     """
-    Calculate all evaluation metrics at once.
-    
-    Args:
-        y_true: Actual values
-        y_pred: Predicted values
-    
-    Returns:
-        Dictionary with all metrics
+    Calculate RMSE, MAE, MAPE, and DA.
+
+    For a single forecast window, pass last_actual to compute DA correctly.
+    For multiple rolling windows, compute RMSE/MAE/MAPE on concatenated values
+    and compute DA per window using directional_accuracy(..., last_actual=...).
     """
-    y_true = np.array(y_true)
-    y_pred = np.array(y_pred)
-    
-    # Validate inputs
+    y_true = np.asarray(y_true, dtype=float)
+    y_pred = np.asarray(y_pred, dtype=float)
+
     if len(y_true) != len(y_pred):
         raise ValueError("y_true and y_pred must have the same length")
-    
     if len(y_true) == 0:
         raise ValueError("Input arrays cannot be empty")
-    
-    metrics = {
-        'rmse': rmse(y_true, y_pred),
-        'mae': mae(y_true, y_pred),
-        'mape': mape(y_true, y_pred),
-        'da': directional_accuracy(y_true, y_pred),
+
+    return {
+        "rmse": rmse(y_true, y_pred),
+        "mae": mae(y_true, y_pred),
+        "mape": mape(y_true, y_pred),
+        "da": directional_accuracy(y_true, y_pred, last_actual=last_actual),
     }
-    
-    return metrics
 
 
 def print_metrics(metrics: Dict[str, float], model_name: str = "Model"):
@@ -125,23 +123,3 @@ def print_metrics(metrics: Dict[str, float], model_name: str = "Model"):
     print(f"MAPE: {metrics['mape']:.2f}%")
     print(f"DA:   {metrics['da']:.2f}%")
     print(f"{'='*50}\n")
-
-
-
-# Example usage
-if __name__ == "__main__":
-    # Generate example data
-    np.random.seed(42)
-    n = 100
-    y_true = np.cumsum(np.random.randn(n)) + 100
-    y_pred1 = y_true + np.random.randn(n) * 0.5
-    y_pred2 = y_true + np.random.randn(n) * 0.8
-    
-    # Calculate metrics for both models
-    print("Example: Comparing two models")
-
-    metrics1 = calculate_all_metrics(y_true, y_pred1)
-    print_metrics(metrics1, "Model 1 (Better)")
-
-    metrics2 = calculate_all_metrics(y_true, y_pred2)
-    print_metrics(metrics2, "Model 2 (Worse)")

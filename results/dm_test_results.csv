@@ -1,0 +1,4 @@
+rq,comparison,metric,n_pairs,n_sig,mean_dm,mean_loss_diff
+RQ2,news_vs_nonews,RMSE,45,11,0.7264773094270384,-133.06553654395287
+RQ3,fewshot_vs_zeroshot,RMSE,45,16,-1.5833528336076461,-1510.2918457950584
+RQ4,news_effect_fewshot_vs_zeroshot,DA,45,1,-0.02835441872484328,-0.11190476190476206

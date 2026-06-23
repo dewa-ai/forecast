@@ -15,7 +15,7 @@ if [ ! -d "data/fx_filled" ] || [ ! "$(ls -A data/fx_filled)" ]; then
     echo "  Data not found. Downloading..."
     
     echo "  → Downloading FX price data..."
-    python3 scripts/download_yahoo_fx.py --all --start 2016-01-01
+    python3 scripts/download_yahoo_fx.py --all --start 2016-01-01 --end 2026-04-01
     
     echo "  → Downloading news data..."
     python3 scripts/download_yahoo_news.py --all

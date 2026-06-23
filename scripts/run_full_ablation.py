@@ -45,7 +45,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from baseline_models import ARIMAForecaster, LSTMForecaster, XGBoostForecaster
 from itransformer_model import iTransformerForecaster
 from llm_api_helper import LLMForecaster
-from evaluation_metrics import calculate_all_metrics
+from evaluation_metrics import calculate_all_metrics, directional_accuracy
 from ts_tokenizer import TSFLPromptBuilder
 
 
@@ -174,6 +174,7 @@ class AblationStudyRunner:
             "baseline_results": [],
             "llm_results":      [],
         }
+        self.window_rows = []  # per-window results for DM test
 
     def _load_data(self, currency: str):
         data_file = self.data_dir / f"{currency}.csv"
@@ -209,8 +210,11 @@ class AblationStudyRunner:
         split_idx = int(len(data) * 0.8)
         train     = data[:split_idx]["close"].values
         test      = data[split_idx:]["close"].values
+        all_vals  = data["close"].values
         test_size = min(100, len(test))
         results   = []
+
+        N_WINDOWS, STEP, LOOKBACK = 30, 10, 30
 
         for model_name in self.baseline_models:
             try:
@@ -234,7 +238,30 @@ class AblationStudyRunner:
                 elif len(pred) < test_size:
                     pred = np.concatenate([pred, np.full(test_size - len(pred), pred[-1])])
 
-                metrics = calculate_all_metrics(test[:test_size], pred)
+                # DA anchored to last training value (thesis Eq. 3.5)
+                metrics = calculate_all_metrics(test[:test_size], pred,
+                                               last_actual=float(train[-1]))
+
+                # Per-window evaluation on same windows as LLM (for DM test)
+                for w in range(N_WINDOWS):
+                    window_end = len(all_vals) - (N_WINDOWS - w) * STEP - horizon
+                    if window_end < split_idx + LOOKBACK:
+                        continue
+                    offset = window_end - split_idx
+                    if offset < 0 or offset + horizon > test_size:
+                        continue
+                    w_pred = pred[offset:offset + horizon]
+                    w_true = test[offset:offset + horizon]
+                    last_act = float(test[offset - 1]) if offset > 0 else float(train[-1])
+                    w_rmse  = float(np.sqrt(np.mean((w_true - w_pred) ** 2)))
+                    w_da    = directional_accuracy(w_true, w_pred, last_actual=last_act)
+                    self.window_rows.append({
+                        "type": "baseline", "model": model_name, "config": "baseline",
+                        "currency": currency, "horizon": horizon, "window": w,
+                        "window_rmse": w_rmse,
+                        "window_da":   float(w_da) if not np.isnan(w_da) else 0.0,
+                    })
+
                 results.append({
                     "currency": currency, "horizon": horizon, "model": model_name,
                     "rmse": float(metrics["rmse"]), "mae": float(metrics["mae"]),
@@ -314,17 +341,16 @@ class AblationStudyRunner:
     def _run_llm_single(self, currency, horizon, horizon_name,
                         data, news, llm_model, forecaster):
         """
-        Rolling window evaluation (Fix 4).
+        Rolling window evaluation.
 
-        Slides a 30-day context window across the test period (10 windows,
-        step=10 days) so metrics are averaged over multiple market regimes.
-        All configs use ChatTime (TSFLPromptBuilder) — responses are decoded
-        via TSFLTokenizer.decode().
+        Slides a 30-observation context window across the test period (10 windows,
+        step=10 observations) so metrics are averaged over multiple market regimes.
+        DA is computed per window using the last observed actual price as anchor.
         """
         print(f"\n  [{currency}] {horizon_name} ({horizon}d)")
 
         LOOKBACK  = 30
-        N_WINDOWS = 10
+        N_WINDOWS = 30
         STEP      = 10
 
         if len(data) < LOOKBACK + (horizon + STEP) * N_WINDOWS:
@@ -335,7 +361,7 @@ class AblationStudyRunner:
 
         for config_name, config in self.ablation_configs.items():
             try:
-                all_y_true, all_y_pred = [], []
+                all_y_true, all_y_pred, window_da = [], [], []
 
                 for w in range(N_WINDOWS):
                     window_end   = len(data) - (N_WINDOWS - w) * STEP - horizon
@@ -346,7 +372,7 @@ class AblationStudyRunner:
                     if len(y_true_arr) < horizon:
                         continue
 
-                    last_price = context_data["close"].iloc[-1]
+                    last_price = float(context_data["close"].iloc[-1])
                     prompt     = self._build_prompt(
                         config_name, config, context_data, news,
                         currency, horizon, llm_model)
@@ -356,19 +382,35 @@ class AblationStudyRunner:
                     raw_response = forecaster.api.call(prompt, model=llm_model, is_tsfl=True)
                     ref_prices   = context_data["close"].values[-LOOKBACK:]
                     pred         = tsfl_builder.decode_response(raw_response, ref_prices, horizon)
-                        
-                    # Fix 6: warn if flat predictions
+                    pred         = np.asarray(pred, dtype=float)[:horizon]
+
+                    if len(pred) < horizon:
+                        pred = np.concatenate([pred, np.full(horizon - len(pred), pred[-1])])
+
+                    # Warn if predictions are nearly flat relative to the true window.
                     if np.std(pred) < np.std(y_true_arr) * 0.001:
                         print(f"    [WARN] Flat predictions w={w} ({config_name})")
 
                     all_y_true.extend(y_true_arr)
                     all_y_pred.extend(pred)
+                    da_w = directional_accuracy(y_true_arr, pred, last_actual=last_price)
+                    window_da.append(da_w)
+
+                    # Per-window RMSE for DM test
+                    w_rmse = float(np.sqrt(np.mean((y_true_arr - pred) ** 2)))
+                    self.window_rows.append({
+                        "type": "llm", "model": llm_model, "config": config_name,
+                        "currency": currency, "horizon": horizon, "window": w,
+                        "window_rmse": w_rmse,
+                        "window_da":   float(da_w) if not np.isnan(da_w) else 0.0,
+                    })
 
                 if not all_y_true:
                     raise ValueError("No valid windows")
 
-                metrics = calculate_all_metrics(
-                    np.array(all_y_true), np.array(all_y_pred))
+                metrics = calculate_all_metrics(np.array(all_y_true), np.array(all_y_pred))
+                metrics["da"] = float(np.nanmean(window_da)) if window_da else float("nan")
+
                 results.append({
                     "currency": currency, "horizon": horizon,
                     "model":    llm_model, "config": config_name,
@@ -403,6 +445,11 @@ class AblationStudyRunner:
         )
         pd.DataFrame(combined).to_csv(
             self.output_dir / "combined_summary.csv", index=False)
+        # Per-window results for DM test
+        if self.window_rows:
+            pd.DataFrame(self.window_rows).to_csv(
+                self.output_dir / "window_results.csv", index=False)
+            print(f"[SAVED] window_results.csv ({len(self.window_rows)} rows)")
         print(f"[SAVED] Summary CSVs -> {self.output_dir}")
 
     def run_all(self):
