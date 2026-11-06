@@ -1,310 +1,163 @@
-# Forecasting
+# Financial Time Series Forecasting with Large Language Models
 
-LLM-based exchange rate forecasting (USD/IDR, USD/TWD, USD/EUR, USD/AUD, USD/SGD)
-using Yahoo Finance data.
+Code and experiment pipeline for the Master's thesis *"Financial Time Series Forecasting with Large Language Models"* (National Central University, International Graduate Program in AI; supervisor: Prof. Richard Tzong-Han Tsai).
 
-# For FULL EXPERIMENTS
+Although the title refers to financial time series in general, the scope of this work is **foreign exchange (FX) rate forecasting**. The study evaluates whether small open-source LLMs, used without fine-tuning, can forecast FX rates, and how news augmentation and prompting strategy affect accuracy.
 
-```bash
-# Download all currency pairs from 2016
-python3 scripts/download_yahoo_fx.py --all --start 2016-01-01
+## Overview
 
-# Download news for all pairs
-python3 scripts/download_yahoo_news.py --all
+| Item | Setting |
+|---|---|
+| Task | Daily FX rate forecasting, January 2016 to March 2026 |
+| Currency pairs | USD/IDR, USD/TWD, USD/AUD, USD/EUR, USD/SGD |
+| Horizons | 1, 5, and 10 days |
+| LLMs | Llama3-8B-Instruct, Qwen2.5-7B-Instruct, Mistral-7B-Instruct-v0.3 (served with vLLM, FP16) |
+| LLM input | ChatTime tokenization (normalize, discretize, serialize into `###value###` tokens) |
+| Ablation | 2x2 factorial design: news augmentation (on/off) x prompting (zero-shot/few-shot) |
+| Baselines | ARIMA, LSTM, XGBoost, iTransformer, vanilla Transformer, Naive (random walk), Moving Average (7-day) |
+| Metrics | RMSE, MAE, MAPE, Directional Accuracy (DA), R² |
+| Significance | Diebold-Mariano test with Harvey-Leybourne-Newbold correction (N = 30 rolling windows per unit); secondary paired t-test for RQ1 |
 
-# Forward-fill ALL calendar days (including weekends)
-python3 scripts/check_fx_data.py --data-dir data/fx_raw --fill --out-dir data/fx_filled
+### Research questions
 
+1. **RQ1:** To what extent do LLMs outperform traditional forecasting baselines in forecasting foreign exchange rates?
+2. **RQ2:** Does incorporating financial news into LLM prompts improve foreign exchange rate forecasting accuracy?
+3. **RQ3:** Does few-shot prompting improve forecasting performance compared to zero-shot prompting?
+4. **RQ4:** Do news integration and few-shot prompting work independently or synergistically in improving forecast performance?
 
-```
+## Headline results
 
+All figures below are computed from `results/combined_summary.csv` and `results/dm_test_results.csv`.
 
+- Each LLM's single best-RMSE configuration beats every baseline on mean RMSE: Qwen2.5-7B reaches 27.48, against 91.81 for the best baseline (XGBoost).
+- The LLM achieves a lower loss than the best baseline in 45 of 45 (model, currency, horizon) comparisons, significant at the 5% level in 38 of 45.
+- Baseline mean DA clusters around 50% (48.85% to 50.04%); LLM mean DA ranges from 52.19% to 54.25%.
+- All three LLMs have a positive mean R²; every baseline has a negative mean R².
+- Few-shot prompting is the more reliable driver of improvement. News augmentation shows no consistent benefit under the data constraints described below.
 
-# FX Forecasting Framework - Setup & Usage Guide
-
-## Installation
-
-### 1. Create Virtual Environment
-
-```bash
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-### 2. Install Dependencies
-
-```bash
-# Core dependencies
-pip install pandas numpy scipy scikit-learn
-
-# Data collection
-pip install yfinance
-
-# Statistical models
-pip install statsmodels
-
-# Machine learning
-pip install xgboost
-
-# Deep learning
-pip install torch torchvision  # Or: pip install torch --index-url https://download.pytorch.org/whl/cpu
-
-# Optional: For visualization
-pip install matplotlib seaborn
-```
-
-## Project Structure
+## Repository structure
 
 ```
 forecast/
-├── scripts/
-│   ├── download_yahoo_fx.py         # Download FX price data
-│   ├── download_yahoo_news.py       # Download news articles
-│   ├── check_fx_data.py             # Data quality check & fill
-│   ├── evaluation_metrics.py        # Metrics (RMSE, MAE, MAPE, DA, DM)
-│   ├── baseline_models.py           # ARIMA, LSTM, XGBoost
-│   ├── itransformer_model.py        # iTransformer implementation
-│   └── experiment_runner.py         # Ablation study runner
+├── config.yaml
+├── requirements.txt
 ├── data/
-│   ├── fx_raw/                      # Raw FX data (trading days only)
-│   ├── fx_filled/                   # Filled data (all calendar days)
-│   └── fx_news/                     # News articles (JSON)
-└── results/                         # Experiment results
+│   ├── fx_raw/              # raw downloads from Yahoo Finance
+│   ├── fx_filled/           # cleaned daily series, one CSV per pair (USDIDR.csv, ...)
+│   └── fx_news/             # static news snapshots per pair
+├── scripts/                 # all code (run commands from this directory)
+├── results/                 # CSV/JSON outputs and generated plots
+├── figures/                 # figures used in the thesis
+└── logs/                    # vLLM server logs
 ```
 
-## Quick Start
+### Key scripts (`scripts/`)
 
-### Step 1: Download FX Data
+| Script | Purpose |
+|---|---|
+| `run_full_ablation.py` | Full pipeline: baselines, then LLM ablation (starts vLLM servers automatically) |
+| `run_baselines_only.py` | Re-run only the seven baselines and merge into existing LLM results |
+| `run_llama3_only.py` | Re-run only Llama3-8B and merge into existing results |
+| `baseline_models.py` | ARIMA, LSTM, XGBoost, Naive, Moving Average |
+| `itransformer_model.py`, `vanilla_transformer_model.py` | Transformer baselines (variate-wise vs. temporal attention) |
+| `ts_tokenizer.py`, `llm_prompts.py` | ChatTime tokenization and prompt construction |
+| `llm_api_helper.py` | LLM client for the vLLM servers |
+| `evaluation_metrics.py` | RMSE, MAE, MAPE, DA, R² |
+| `dm_test.py`, `statistical_tests.py` | Diebold-Mariano tests and paired tests |
+| `plot_rq.py`, `plot_extra.py`, `plot_raw_fx_series.py` | Figures for RQ1 to RQ4, per-horizon plots, raw price plots |
+| `generate_chap4_tables.py`, `generate_horizon_breakdown.py` | LaTeX-ready tables for the results chapter |
+| `download_yahoo_fx.py`, `download_yahoo_news.py`, `check_fx_data.py` | Data collection and sanity checks |
+| `start_vllm_servers.sh`, `setup_and_run.sh` | Server and environment helpers |
+
+## Setup
 
 ```bash
-# Download all currency pairs from 2016
-python3 scripts/download_yahoo_fx.py --all --start 2016-01-01
-
-# Or specific pairs
-python3 scripts/download_yahoo_fx.py --pairs USDIDR USDEUR --start 2016-01-01
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
-**Output:** `data/fx_raw/USDIDR.csv`, `data/fx_raw/USDEUR.csv`, etc.
+Requirements beyond the Python packages:
 
-### Step 2: Download News Data
+- One or more NVIDIA GPUs for vLLM (the reported runs used L40S GPUs; vLLM v0.4.3).
+- A Hugging Face account with access to `meta-llama/Meta-Llama-3-8B-Instruct` (gated model).
+- Internet access to Yahoo Finance for data download (`yfinance`).
+
+## Reproducing the experiments
+
+All commands are run from `scripts/`.
+
+### 1. Data
 
 ```bash
-# Download news for all pairs
-python3 scripts/download_yahoo_news.py --all
-
-# Or specific pair
-python3 scripts/download_yahoo_news.py --pair USDIDR
+python3 download_yahoo_fx.py --all --start 2016-01-01
+python3 download_yahoo_news.py
+python3 check_fx_data.py
 ```
 
-**Output:** `data/fx_news/USDIDR_news.json`, etc.
+News headlines are a **static snapshot** (9 to 10 articles per pair) collected at download time, not historical news aligned to each forecast window.
 
-### Step 3: Fill Missing Days (Weekends/Holidays)
+### 2. Full experiment
 
 ```bash
-# Forward-fill ALL calendar days (including weekends)
-python3 scripts/check_fx_data.py --data-dir data/fx_raw --fill --out-dir data/fx_filled
-
-# Check data quality only (no fill)
-python3 scripts/check_fx_data.py --data-dir data/fx_raw
+python3 run_full_ablation.py \
+    --output ../results/ \
+    --data-dir ../data/fx_filled \
+    --news-dir ../data/fx_news
 ```
 
-**Output:** `data/fx_filled/USDIDR.csv` (with weekends filled)
+Relative paths assume the command is run from `scripts/`. Omitting `--data-dir` and `--news-dir` makes the script look for `data/fx_filled` relative to the current directory.
 
-## Running Experiments
+vLLM servers are configured in `run_full_ablation.py` (`LLM_SERVER_CONFIG`, `LLAMA3_CONFIG`): GPU assignment, model IDs, and ports (Qwen2.5 on 18001, Mistral on 18002, Llama3 on 18003 in the current version). The default Llama3 port in `llm_api_helper.py` can be overridden with the `LLAMA3_PORT` environment variable, which the run scripts set automatically. Adjust GPU IDs and ports to match your machine, particularly on shared servers.
 
-### Baseline Models Only
+### 3. Partial re-runs
 
 ```bash
-python3 scripts/experiment_runner.py \
-  --currency USDIDR \
-  --data-dir data/fx_filled \
-  --output-dir results \
-  --baseline-only
+python3 run_baselines_only.py --results-dir ../results/ --data-dir ../data/fx_filled --news-dir ../data/fx_news
+python3 run_llama3_only.py    --results-dir ../results/ --data-dir ../data/fx_filled --news-dir ../data/fx_news
 ```
 
-### LLM Ablation Studies
+Both scripts merge their output into the existing `ablation_results.json` and summary CSVs without re-running the other models.
+
+### 4. Analysis and figures
 
 ```bash
-# Run all ablations
-python3 scripts/experiment_runner.py \
-  --currency USDIDR \
-  --data-dir data/fx_filled \
-  --news-dir data/fx_news \
-  --output-dir results \
-  --ablation all
+python3 statistical_tests.py --results-dir ../results/
+python3 dm_test.py --csv ../results/window_results.csv
 
-# Run specific ablation
-python3 scripts/experiment_runner.py \
-  --currency USDIDR \
-  --ablation news  # or 'prompt' or 'interaction'
+python3 plot_rq.py    --results-dir ../results/ --outdir ../results/plots_rq/
+python3 plot_extra.py --results-dir ../results/ --outdir ../results/plots_extra/
+python3 plot_raw_fx_series.py --outdir ../figures/
+
+python3 generate_chap4_tables.py --results-dir ../results/
+python3 generate_horizon_breakdown.py --csv ../results/window_results.csv --include-rq4
 ```
 
-### Full Experiment (Baselines + LLMs)
+## Outputs (`results/`)
 
-```bash
-python3 scripts/experiment_runner.py \
-  --currency USDIDR \
-  --data-dir data/fx_filled \
-  --news-dir data/fx_news \
-  --output-dir results
-```
+| File | Content |
+|---|---|
+| `ablation_results.json` | Aggregate results for all models and configurations |
+| `baseline_summary.csv`, `llm_summary.csv`, `combined_summary.csv` | Per (currency, horizon, model, config) metrics, including R² |
+| `window_results.csv` | Per-window RMSE and DA, with raw `y_true` / `y_pred` (semicolon-separated) |
+| `dm_test_results.csv`, `llm_stat_tests.csv`, `statistical_test_results.csv` | Significance test results |
+| `plots_rq/`, `plots_extra/` | Generated figures |
 
-## Using Individual Models
+## Evaluation protocol
 
-### ARIMA
+- **LLMs:** no fine-tuning; 30 rolling evaluation windows per (model, currency, horizon, configuration). Sampling temperature starts low and is raised incrementally (up to 0.7) when a response contains no valid `###value###` tokens.
+- **Baselines:** fitted once on the first 80% of each series (chronological split) and evaluated over a 330-observation test window. For the Diebold-Mariano tests, per-window metrics are computed on the same 30 rolling-window structure as the LLMs.
+- **Aggregate metrics:** baseline aggregates use the full test window, whereas LLM aggregates pool the 30 rolling windows. This remaining difference is discussed in the thesis (Limitations).
+- **Reproducibility:** LLM outputs are sampled and will not be bit-identical across reruns; baseline results are deterministic given the same data and configuration.
 
-```python
-from baseline_models import ARIMAForecaster
-import pandas as pd
+## Known limitations
 
-# Load data
-df = pd.read_csv('data/fx_filled/USDIDR.csv')
-data = df['close'].values
+- The news dataset is small, static, and not temporally aligned with each forecast window, so RQ2 should be read as a pilot investigation.
+- The LLMs' pretraining cutoffs fall in 2024, so only the later part of the 2016 to March 2026 data is guaranteed to be unseen; memorization of earlier history cannot be fully excluded.
+- All results are historical backtests and do not establish live trading performance.
+- Time series foundation models (e.g., Timer-XL, Chronos) and other Transformer variants (e.g., PatchTST, Autoformer) are not included and are left as future work.
 
-# Train/test split
-train = data[:int(0.8 * len(data))]
-test = data[int(0.8 * len(data)):]
 
-# Train and predict
-model = ARIMAForecaster(order=(1, 1, 1))
-model.fit(train)
-predictions = model.predict(horizon=len(test))
+## Acknowledgements
 
-# Evaluate
-from evaluation_metrics import calculate_all_metrics
-metrics = calculate_all_metrics(test, predictions)
-print(metrics)
-```
-
-### LSTM
-
-```python
-from baseline_models import LSTMForecaster
-
-model = LSTMForecaster(
-    seq_length=30,
-    hidden_size=50,
-    num_layers=2,
-    epochs=50,
-    batch_size=32
-)
-
-model.fit(train)
-predictions = model.predict(train, horizon=len(test))
-```
-
-### XGBoost
-
-```python
-from baseline_models import XGBoostForecaster
-
-model = XGBoostForecaster(
-    n_lags=30,
-    n_estimators=100,
-    learning_rate=0.1
-)
-
-model.fit(train)
-predictions = model.predict(horizon=len(test))
-```
-
-### iTransformer
-
-```python
-from itransformer_model import iTransformerForecaster
-
-model = iTransformerForecaster(
-    seq_len=96,
-    pred_len=24,
-    d_model=128,
-    n_heads=8,
-    n_layers=3,
-    epochs=10
-)
-
-model.fit(train)
-predictions = model.predict(train, horizon=len(test))
-```
-
-## Evaluation Metrics
-
-```python
-from evaluation_metrics import calculate_all_metrics, diebold_mariano_test
-
-# Calculate all metrics
-metrics = calculate_all_metrics(y_true, y_pred)
-print(f"RMSE: {metrics['rmse']:.4f}")
-print(f"MAE: {metrics['mae']:.4f}")
-print(f"MAPE: {metrics['mape']:.2f}%")
-print(f"DA: {metrics['da']:.2f}%")
-
-# Compare two models statistically
-dm_stat, p_value = diebold_mariano_test(y_true, pred_model1, pred_model2)
-print(f"DM Statistic: {dm_stat:.4f}")
-print(f"P-value: {p_value:.4f}")
-```
-
-## Ablation Study Design
-
-### Ablation 1: News Contribution
-**Q1: Does external news actually help?**
-
-Settings:
-- `w/o news`: Baseline LLM (price data only)
-- `w/ news`: LLM with news articles
-
-### Ablation 2: Prompting Strategy
-**Q2: Does few-shot prompting matter?**
-
-Settings:
-- `zero-shot`: No examples in prompt
-- `few-shot`: With 3-5 example predictions
-
-### Ablation 3: Interaction Effect (NEWS × PROMPT)
-**Q3: Do they help independently or jointly?**
-
-Settings:
-- `zero + no`: Baseline LLM
-- `zero + yes`: News only
-- `few + no`: Prompt only
-- `few + yes`: Full model (best)
-
-## Expected Results Structure
-
-After running experiments, you'll get:
-
-```
-results/
-├── results_USDIDR_20260119_143022.json  # Full results
-└── summary_USDIDR.csv                    # Summary table
-```
-
-**Summary CSV columns:**
-- `type`: baseline or llm
-- `model`: Model name (arima, lstm, llama3-8b, etc.)
-- `horizon`: 1, 5, or 10 days
-- `config`: Model configuration (e.g., news=True_prompt=few)
-- `rmse`, `mae`, `mape`, `da`: Evaluation metrics
-
-## Next Steps for Thesis
-
-1. **Run all experiments** for 5 currency pairs × 3 horizons
-2. **Analyze results**: Which models perform best? Does news help?
-3. **Statistical significance**: Use DM test to compare models
-4. **Visualize**: Create plots showing model comparisons
-5. **Write up**: Document findings with tables and figures
-
-## Tips
-
-- **Start small**: Test with one currency pair first
-- **Monitor GPU**: LSTM and iTransformer benefit from GPU
-- **Hyperparameter tuning**: Experiment with different settings
-- **News quality**: More recent news = better signal
-- **Horizon matters**: Short-term (h=1) vs long-term (h=10) behave differently
-
-## References
-
-- **iTransformer**: Liu et al. (2023) - "iTransformer: Inverted Transformers Are Effective for Time Series Forecasting"
-- **Diebold-Mariano Test**: Diebold & Mariano (1995) - "Comparing Predictive Accuracy"
-
----
+Supervised by Prof. Richard Tzong-Han Tsai, with guidance and support from Connyn and Royce of IISR lab at National Central University. The tokenization approach builds on ChatTime (Wang et al., 2025).
