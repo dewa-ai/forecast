@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Complete Ablation Study Runner for FX Forecasting.
+Ablation Study Runner for FX Forecasting.
 
 Runs all ablation configurations across:
 - 5 currencies (USDIDR, USDEUR, USDSGD, USDTWD, USDAUD)
@@ -42,10 +42,11 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from baseline_models import ARIMAForecaster, LSTMForecaster, XGBoostForecaster
+from baseline_models import ARIMAForecaster, LSTMForecaster, XGBoostForecaster, NaiveForecaster, MovingAverageForecaster
 from itransformer_model import iTransformerForecaster
+from vanilla_transformer_model import VanillaTransformerForecaster
 from llm_api_helper import LLMForecaster
-from evaluation_metrics import calculate_all_metrics, directional_accuracy
+from evaluation_metrics import calculate_all_metrics, directional_accuracy, r_squared
 from ts_tokenizer import TSFLPromptBuilder
 
 
@@ -54,11 +55,6 @@ MEM_UTIL = 0.70  # 70% per GPU
 DTYPE    = "half"
 
 LLM_SERVER_CONFIG = {
-    "llama3-8b": {
-        "model_id": "meta-llama/Meta-Llama-3-8B-Instruct",
-        "port":     18000,
-        "gpu_id":   0,
-    },
     "qwen2.5-7b": {
         "model_id": "Qwen/Qwen2.5-7B-Instruct",
         "port":     18001,
@@ -71,15 +67,30 @@ LLM_SERVER_CONFIG = {
     },
 }
 
+# GPU 0 is currently occupied by another process (leaked memory or active job) --
+# Llama3-8B is run in a second phase, after Qwen/Mistral finish and release GPU 1,
+# rather than sharing GPU 0. See run_llm_phase() below for the two-stage orchestration.
+# Port 18000 is occupied by another user's process on this shared server, so
+# Llama3-8B uses 18003 instead (18001/18002 are already taken by Qwen/Mistral above).
+LLAMA3_CONFIG = {
+    "llama3-8b": {
+        "model_id": "meta-llama/Meta-Llama-3-8B-Instruct",
+        "port":     18003,
+        "gpu_id":   1,   # reuses GPU 1 after qwen2.5-7b's server is stopped
+    },
+}
+
 
 # -- Server helpers -----------------------------------------------------------
 
-def start_all_servers() -> dict:
-    """Launch all 3 vLLM servers in parallel, return {model_name: proc} for ready ones."""
-    print("\n[SERVERS] Launching all 3 servers in parallel...")
+def start_all_servers(server_config: dict = None) -> dict:
+    """Launch vLLM servers in parallel for all models in server_config, return {model_name: proc} for ready ones."""
+    if server_config is None:
+        server_config = LLM_SERVER_CONFIG
+    print(f"\n[SERVERS] Launching {len(server_config)} server(s) in parallel...")
     procs_raw = {}
 
-    for model_name, cfg in LLM_SERVER_CONFIG.items():
+    for model_name, cfg in server_config.items():
         env = {**os.environ, "CUDA_VISIBLE_DEVICES": str(cfg["gpu_id"])}
         cmd = [
             "python3", "-m", "vllm.entrypoints.openai.api_server",
@@ -102,7 +113,7 @@ def start_all_servers() -> dict:
         for model_name, proc in procs_raw.items():
             if model_name in ready:
                 continue
-            port = LLM_SERVER_CONFIG[model_name]["port"]
+            port = server_config[model_name]["port"]
             try:
                 r = requests.get(f"http://localhost:{port}/v1/models", timeout=3)
                 if r.status_code == 200 and "id" in r.text:
@@ -152,8 +163,8 @@ class AblationStudyRunner:
 
         self.currencies      = ["USDIDR", "USDEUR", "USDSGD", "USDTWD", "USDAUD"]
         self.horizons        = {"short": 1, "medium": 5, "long": 10}
-        self.llm_models      = list(LLM_SERVER_CONFIG.keys())
-        self.baseline_models = ["arima", "lstm", "xgboost", "itransformer"]
+        self.llm_models      = list(LLM_SERVER_CONFIG.keys()) + list(LLAMA3_CONFIG.keys())
+        self.baseline_models = ["arima", "lstm", "xgboost", "itransformer", "vanilla_transformer", "naive", "moving_average"]
 
         self.ablation_configs = {
             # All configs use ChatTime tokenization (###value### format) as base architecture.
@@ -211,7 +222,13 @@ class AblationStudyRunner:
         train     = data[:split_idx]["close"].values
         test      = data[split_idx:]["close"].values
         all_vals  = data["close"].values
-        test_size = min(100, len(test))
+        # test_size increased from 100 to 330: with N_WINDOWS=30, STEP=10, LOOKBACK=30,
+        # the largest horizon (h=10) requires test_size >= LOOKBACK + N_WINDOWS*STEP + h - STEP = 330
+        # to fit all 30 rolling windows. At test_size=100, only 7 of 30 windows were valid
+        # (see window offset bugfix below), giving baselines far fewer DM-test samples than
+        # the LLMs' full N=30. This does not change baseline_results (full 80/20 test-period
+        # metrics are unaffected), only the number of per-window rows available for DM tests.
+        test_size = min(330, len(test))
         results   = []
 
         N_WINDOWS, STEP, LOOKBACK = 30, 10, 30
@@ -232,6 +249,17 @@ class AblationStudyRunner:
                         seq_len=30, pred_len=horizon,
                         d_model=64, n_heads=4, n_layers=2, epochs=30)
                     m.fit(train); pred = m.predict(train, horizon=test_size)
+                elif model_name == "vanilla_transformer":
+                    m = VanillaTransformerForecaster(
+                        seq_len=30, pred_len=horizon,
+                        d_model=64, n_heads=4, n_layers=2, epochs=30)
+                    m.fit(train); pred = m.predict(train, horizon=test_size)
+                elif model_name == "naive":
+                    m = NaiveForecaster()
+                    m.fit(train); pred = m.predict(horizon=test_size)
+                elif model_name == "moving_average":
+                    m = MovingAverageForecaster(window=7)
+                    m.fit(train); pred = m.predict(horizon=test_size)
 
                 if len(pred) > test_size:
                     pred = pred[:test_size]
@@ -242,12 +270,19 @@ class AblationStudyRunner:
                 metrics = calculate_all_metrics(test[:test_size], pred,
                                                last_actual=float(train[-1]))
 
-                # Per-window evaluation on same windows as LLM (for DM test)
+                # Per-window evaluation on same windows as LLM (for DM test).
+                # BUGFIX: window_end/offset were previously computed relative to
+                # len(all_vals) (the full untruncated series), then compared against
+                # test_size (which is truncated to min(100, len(test))). This made
+                # `offset + horizon > test_size` true for every window, so NO baseline
+                # window rows were ever recorded (offset ranged ~448-738 vs test_size=100).
+                # Fixed by computing window_end relative to the truncated test region
+                # (length test_size) directly, matching how test/pred are indexed below.
                 for w in range(N_WINDOWS):
-                    window_end = len(all_vals) - (N_WINDOWS - w) * STEP - horizon
-                    if window_end < split_idx + LOOKBACK:
+                    window_end = test_size - (N_WINDOWS - w) * STEP - horizon + STEP
+                    if window_end < LOOKBACK:
                         continue
-                    offset = window_end - split_idx
+                    offset = window_end
                     if offset < 0 or offset + horizon > test_size:
                         continue
                     w_pred = pred[offset:offset + horizon]
@@ -260,14 +295,17 @@ class AblationStudyRunner:
                         "currency": currency, "horizon": horizon, "window": w,
                         "window_rmse": w_rmse,
                         "window_da":   float(w_da) if not np.isnan(w_da) else 0.0,
+                        "y_true": ";".join(f"{v:.6f}" for v in w_true),
+                        "y_pred": ";".join(f"{v:.6f}" for v in w_pred),
                     })
 
                 results.append({
                     "currency": currency, "horizon": horizon, "model": model_name,
                     "rmse": float(metrics["rmse"]), "mae": float(metrics["mae"]),
                     "mape": float(metrics["mape"]), "da": float(metrics["da"]),
+                    "r2": float(metrics.get("r2", float("nan"))),
                 })
-                print(f"  {model_name.upper()}: RMSE={metrics['rmse']:.4f} DA={metrics['da']:.2f}%")
+                print(f"  {model_name.upper()}: RMSE={metrics['rmse']:.4f} DA={metrics['da']:.2f}% R2={metrics.get('r2', float('nan')):.4f}")
             except Exception as e:
                 print(f"  {model_name.upper()} ERROR: {e}")
         return results
@@ -276,18 +314,33 @@ class AblationStudyRunner:
 
     def run_all_llms(self):
         print("\n" + "="*60)
-        print("PHASE 2: LLM ABLATION (parallel -- one model per GPU)")
+        print("PHASE 2: LLM ABLATION")
+        print("GPU 0 is currently occupied by another process, so this runs in")
+        print("two stages instead of all 3 models in parallel:")
+        print("  Stage 1: qwen2.5-7b (GPU 1) + mistral-7b (GPU 2), in parallel")
+        print("  Stage 2: llama3-8b (GPU 1), after Stage 1's servers are stopped")
         print("="*60)
 
-        procs = start_all_servers()
+        self._run_llm_stage(LLM_SERVER_CONFIG)   # Stage 1: qwen2.5-7b + mistral-7b
+        self._run_llm_stage(LLAMA3_CONFIG)        # Stage 2: llama3-8b
+
+    def _run_llm_stage(self, server_config: dict):
+        """Run one stage of the LLM phase for the models in server_config."""
+        procs = start_all_servers(server_config)
         if not procs:
-            print("ERROR: No LLM servers started. Skipping LLM phase.")
+            print(f"ERROR: No servers started for {list(server_config.keys())}. Skipping this stage.")
             return
+
+        # llm_api_helper.py's vLLMAPI hardcodes llama3-8b's port as 18000 by default;
+        # override it via env var if this stage includes llama3-8b at a different port
+        # (18003, since 18000 is occupied by another user's process on this server).
+        if "llama3-8b" in server_config:
+            os.environ["LLAMA3_PORT"] = str(server_config["llama3-8b"]["port"])
 
         try:
             forecaster = LLMForecaster(backend="vllm")
 
-            for llm_model in self.llm_models:
+            for llm_model in server_config.keys():
                 if llm_model not in procs:
                     print(f"\nSkipping {llm_model} -- server failed to start")
                     continue
@@ -403,6 +456,8 @@ class AblationStudyRunner:
                         "currency": currency, "horizon": horizon, "window": w,
                         "window_rmse": w_rmse,
                         "window_da":   float(da_w) if not np.isnan(da_w) else 0.0,
+                        "y_true": ";".join(f"{v:.6f}" for v in y_true_arr),
+                        "y_pred": ";".join(f"{v:.6f}" for v in pred),
                     })
 
                 if not all_y_true:
@@ -417,10 +472,11 @@ class AblationStudyRunner:
                     "news":     config["news"], "prompt": config["prompt"],
                     "rmse": float(metrics["rmse"]), "mae":  float(metrics["mae"]),
                     "mape": float(metrics["mape"]), "da":   float(metrics["da"]),
+                    "r2":   float(metrics.get("r2", float("nan"))),
                     "n_windows": N_WINDOWS,
                 })
                 print(f"    {config_name}: RMSE={metrics['rmse']:.4f} "
-                      f"DA={metrics['da']:.2f}% (n={N_WINDOWS})")
+                      f"DA={metrics['da']:.2f}% R2={metrics.get('r2', float('nan')):.4f} (n={N_WINDOWS})")
             except Exception as e:
                 print(f"    {config_name} ERROR: {e}")
         return results
