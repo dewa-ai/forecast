@@ -39,6 +39,41 @@ def mape(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return float(np.mean(np.abs((y_true[mask] - y_pred[mask]) / y_true[mask])) * 100)
 
 
+def r_squared(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """
+    Coefficient of determination (R^2). Higher is better; 1.0 is a perfect fit.
+
+    R^2 = 1 - SS_residual / SS_total
+        = 1 - sum((y_true - y_pred)^2) / sum((y_true - mean(y_true))^2)
+
+    Added per committee feedback requesting a scale-independent metric that
+    reflects how much of the variance in the actual series is explained by
+    the model, complementing RMSE/MAE (scale-dependent) and DA (direction-only).
+
+    Note: R^2 can be negative when the model performs worse than simply
+    predicting the mean of y_true for every point -- this is a meaningful and
+    expected outcome to report, not a bug, and should be interpreted as the
+    model providing no explanatory power over a naive constant-mean predictor.
+
+    If y_true is constant (zero variance, SS_total == 0), R^2 is undefined;
+    this function returns NaN in that case rather than raising an error, so
+    that batch computation across many currency/horizon/model combinations
+    does not fail on a single degenerate window.
+    """
+    y_true = np.asarray(y_true, dtype=float)
+    y_pred = np.asarray(y_pred, dtype=float)
+    if len(y_true) != len(y_pred):
+        raise ValueError("y_true and y_pred must have the same length")
+    if len(y_true) == 0:
+        return float("nan")
+
+    ss_res = np.sum((y_true - y_pred) ** 2)
+    ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)
+    if ss_tot == 0:
+        return float("nan")
+    return float(1.0 - ss_res / ss_tot)
+
+
 def directional_accuracy(
     y_true: np.ndarray,
     y_pred: np.ndarray,
@@ -110,6 +145,7 @@ def calculate_all_metrics(
         "mae": mae(y_true, y_pred),
         "mape": mape(y_true, y_pred),
         "da": directional_accuracy(y_true, y_pred, last_actual=last_actual),
+        "r2": r_squared(y_true, y_pred),
     }
 
 
@@ -122,4 +158,6 @@ def print_metrics(metrics: Dict[str, float], model_name: str = "Model"):
     print(f"MAE:  {metrics['mae']:.6f}")
     print(f"MAPE: {metrics['mape']:.2f}%")
     print(f"DA:   {metrics['da']:.2f}%")
+    if "r2" in metrics:
+        print(f"R^2:  {metrics['r2']:.4f}")
     print(f"{'='*50}\n")
