@@ -127,6 +127,96 @@ class ARIMAForecaster:
         return best_order
 
 
+class NaiveForecaster:
+    """
+    Naive (Random Walk) forecaster.
+
+    Predicts that all future values equal the last observed value:
+        y_hat(t+h) = y(t)  for all h
+
+    This is the classical random-walk benchmark for financial time series.
+    Under the efficient market hypothesis, exchange rates are widely modeled
+    as approximately following a random walk, making this an important and
+    difficult-to-beat baseline for FX forecasting specifically (see committee
+    feedback, Section 3.2 justification).
+    """
+
+    def __init__(self):
+        self.last_value = None
+
+    def fit(self, data: np.ndarray):
+        """
+        'Fitting' a naive forecaster just means storing the last observed value.
+
+        Args:
+            data: 1D array of time series values (training data)
+        """
+        self.last_value = float(data[-1])
+        return self
+
+    def predict(self, horizon: int) -> np.ndarray:
+        """
+        Repeat the last observed value for every step of the forecast horizon.
+
+        Args:
+            horizon: Number of steps ahead to forecast
+
+        Returns:
+            Array of predictions, all equal to the last observed value
+        """
+        if self.last_value is None:
+            raise ValueError("Model must be fitted before prediction")
+        return np.full(horizon, self.last_value)
+
+
+class MovingAverageForecaster:
+    """
+    Moving Average forecaster.
+
+    Predicts that all future values equal the mean of the last `window`
+    observed values:
+        y_hat(t+h) = mean(y(t-window+1), ..., y(t))  for all h
+
+    A second classical, non-trainable benchmark for FX forecasting, complementary
+    to NaiveForecaster (random walk). Included alongside the random walk baseline
+    per committee feedback on strengthening the baseline comparison set.
+    """
+
+    def __init__(self, window: int = 7):
+        """
+        Args:
+            window: Number of most recent observations to average over
+        """
+        self.window = window
+        self.avg_value = None
+
+    def fit(self, data: np.ndarray):
+        """
+        'Fitting' a moving-average forecaster means storing the mean of the
+        last `window` observed values.
+
+        Args:
+            data: 1D array of time series values (training data)
+        """
+        tail = data[-self.window:] if len(data) >= self.window else data
+        self.avg_value = float(np.mean(tail))
+        return self
+
+    def predict(self, horizon: int) -> np.ndarray:
+        """
+        Repeat the moving-average value for every step of the forecast horizon.
+
+        Args:
+            horizon: Number of steps ahead to forecast
+
+        Returns:
+            Array of predictions, all equal to the moving average
+        """
+        if self.avg_value is None:
+            raise ValueError("Model must be fitted before prediction")
+        return np.full(horizon, self.avg_value)
+
+
 class LSTMModel(nn.Module):
     """LSTM neural network for time series forecasting."""
     
@@ -415,6 +505,20 @@ if __name__ == "__main__":
     xgb_forecaster.fit(train_data)
     xgb_pred = xgb_forecaster.predict(horizon)
     print(f"XGBoost predictions shape: {xgb_pred.shape}")
+
+    # Naive (Random Walk)
+    print("\n4. Naive (Random Walk) Model")
+    naive = NaiveForecaster()
+    naive.fit(train_data)
+    naive_pred = naive.predict(horizon)
+    print(f"Naive predictions shape: {naive_pred.shape}")
+
+    # Moving Average
+    print("\n5. Moving Average Model")
+    ma = MovingAverageForecaster(window=7)
+    ma.fit(train_data)
+    ma_pred = ma.predict(horizon)
+    print(f"Moving Average predictions shape: {ma_pred.shape}")
     
     print("\n" + "="*60)
     print("All models trained and tested successfully!")
