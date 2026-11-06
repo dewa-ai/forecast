@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 plot_rq.py
-Generates thesis-ready plots for each Research Question (RQ1–RQ4).
+Plots for each Research Question (RQ1-RQ4).
 
 Output structure:
   results/plots_rq/
@@ -106,7 +106,8 @@ def plot_rq1(combined: pd.DataFrame, outdir: Path) -> None:
     """
     print("\n[RQ1] LLM vs Baseline...")
 
-    baseline_names = {"arima", "lstm", "xgboost", "itransformer"}
+    baseline_names = {"arima", "lstm", "xgboost", "itransformer",
+                       "vanilla_transformer", "naive", "moving_average"}
 
     def model_type(m: str) -> str:
         return "Baseline" if str(m).lower() in baseline_names else "LLM"
@@ -116,8 +117,20 @@ def plot_rq1(combined: pd.DataFrame, outdir: Path) -> None:
 
     llm_df = df[df["type"] == "LLM"].copy()
     if not llm_df.empty and "rmse" in llm_df.columns:
-        idx = llm_df.groupby(["model", "currency", "horizon"])["rmse"].idxmin()
-        llm_best = llm_df.loc[idx]
+        # Select ONE config per LLM model, consistent with generate_chap4_tables.py:
+        # the config with the lowest MEAN rmse across all currency/horizon combinations,
+        # applied uniformly -- not the per-(currency,horizon)-cell best config, which
+        # would cherry-pick a different config for each cell and inflate the aggregate
+        # numbers relative to what is reported in the thesis text (Section 4.1/4.2).
+        best_cfg_per_model = (
+            llm_df.groupby(["model", "config"])["rmse"].mean()
+            .reset_index()
+            .loc[lambda d: d.groupby("model")["rmse"].idxmin()]
+            .set_index("model")["config"]
+        )
+        llm_best = llm_df[llm_df.apply(
+            lambda r: r["config"] == best_cfg_per_model.get(r["model"]), axis=1
+        )]
     else:
         llm_best = llm_df
 
@@ -138,7 +151,7 @@ def plot_rq1(combined: pd.DataFrame, outdir: Path) -> None:
                       .reset_index()
                       .sort_values(metric, ascending=ascending))
 
-        fig, ax = plt.subplots(figsize=(9, 5))
+        fig, ax = plt.subplots(figsize=(12, 5.5))
         colors = [COLORS[0] if t == "Baseline" else COLORS[1] for t in agg["type"]]
         bars = ax.bar(agg["model"], agg[metric], color=colors, edgecolor="white", linewidth=0.8)
 
@@ -148,9 +161,10 @@ def plot_rq1(combined: pd.DataFrame, outdir: Path) -> None:
             Patch(facecolor=COLORS[1], label="LLM (best config)"),
         ]
         ax.legend(handles=legend_elements, fontsize=9, ncol=2,
-                  loc="lower center", bbox_to_anchor=(0.5, -0.25), framealpha=0.9)
+                  loc="lower center", bbox_to_anchor=(0.5, -0.32), framealpha=0.9)
         ax.set_ylabel(ylabel)
-        plt.xticks(rotation=0, ha="center")
+        plt.xticks(rotation=30, ha="right", fontsize=9)
+        fig.subplots_adjust(bottom=0.28)
         for bar in bars:
             h = bar.get_height()
             if not np.isnan(h):
